@@ -1,0 +1,155 @@
+*laravel-helper.txt*  Laravel Helper for Neovim
+
+==============================================================================
+CONTENTS                                     *laravel-helper-contents*
+
+  1. Introduction ......................... |laravel-helper-introduction|
+  2. Requirements ......................... |laravel-helper-requirements|
+  3. Installation ......................... |laravel-helper-installation|
+  4. Configuration ........................ |laravel-helper-configuration|
+  5. Usage ............................... |laravel-helper-usage|
+  6. Commands ............................ |laravel-helper-commands|
+  7. Functions ........................... |laravel-helper-functions|
+  8. Key Mappings ........................ |laravel-helper-mappings|
+  9. License ............................. |laravel-helper-license|
+
+==============================================================================
+1. INTRODUCTION                              *laravel-helper-introduction*
+
+Laravel Helper is a Neovim plugin that improves the Laravel development 
+experience, with a focus on Laravel IDE Helper integration. It provides 
+automatic detection of Laravel projects, IDE Helper integration with support 
+for PHP and Laravel Sail, automatic installation and generation of IDE Helper 
+files, Artisan command integration, and more.
+
+==============================================================================
+2. REQUIREMENTS                              *laravel-helper-requirements*
+
+- Neovim >= 0.10.0
+- nui.nvim (https://github.com/MunifTanjim/nui.nvim)
+- PHP installed locally, or Laravel Sail configured
+
+==============================================================================
+3. INSTALLATION                              *laravel-helper-installation*
+
+Using lazy.nvim:
+>lua
+    {
+      "greggh/laravel-helper.nvim",
+      dependencies = {
+        "MunifTanjim/nui.nvim",
+      },
+      ft = { "php" },
+      config = function()
+        require("laravel-helper").setup({
+          -- Optional configuration options
+        })
+      end,
+    }
+<
+
+==============================================================================
+4. CONFIGURATION                             *laravel-helper-configuration*
+
+Laravel Helper can be configured using the setup function:
+>lua
+    require("laravel-helper").setup({
+      -- Whether to automatically detect Laravel projects and offer IDE Helper generation
+      auto_detect = true,
+      
+      -- Default timeout for Sail/Docker operations (in milliseconds)
+      docker_timeout = 360000, -- 6 minutes
+      
+      -- Whether to automatically use Sail when available
+      prefer_sail = true,
+      
+      -- Commands to run for IDE Helper generation
+      commands = {
+        "ide-helper:generate",    -- PHPDoc generation for Laravel classes
+        "ide-helper:models -N",   -- PHPDoc generation for models (no write)
+        "ide-helper:meta",        -- PhpStorm Meta file generation
+      }
+    })
+<
+
+==============================================================================
+5. USAGE                                     *laravel-helper-usage*
+
+Laravel Helper automatically detects Laravel projects when opening PHP files.
+It will prompt you to install Laravel IDE Helper if it's not already installed,
+and to generate IDE Helper files if they don't exist.
+
+==============================================================================
+6. COMMANDS                                  *laravel-helper-commands*
+
+Laravel Helper provides the following commands:
+
+:LaravelGenerateIDEHelper                Generate Laravel IDE Helper files
+:LaravelInstallIDEHelper                 Install Laravel IDE Helper package
+:LaravelIDEHelperToggleDebug             Toggle debug mode
+
+==============================================================================
+7. FUNCTIONS                                 *laravel-helper-functions*
+
+The following functions are available:
+
+*laravel-helper.is_laravel_project()*
+  Check if the current directory is a Laravel project.
+
+*laravel-helper.install_ide_helper()*
+  Install Laravel IDE Helper package.
+
+*laravel-helper.generate_ide_helper(force)*
+  Generate IDE Helper files. If `force` is true, will regenerate existing files.
+
+*laravel-helper.toggle_debug_mode()*
+  Toggle detailed debug output.
+
+*laravel-helper.run_artisan_command(command, options)*
+  Run an artisan command with output capture.
+
+*laravel-helper.with_sail_or_php(command, options)*
+  Run a command using Sail when available, falling back to PHP.
+
+==============================================================================
+8. KEY MAPPINGS                              *laravel-helper-mappings*
+
+Laravel Helper doesn't set any key mappings by default. You can set your own:
+>lua
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = "php",
+      callback = function()
+        -- Only set up mappings in Laravel projects
+        if require("laravel-helper").is_laravel_project() then
+          local opts = { buffer = 0, silent = true }
+          
+          -- Generate IDE Helper files
+          vim.keymap.set("n", "<leader>lph", function()
+            require("laravel-helper").generate_ide_helper(true)
+          end, vim.tbl_extend("force", opts, { desc = "Generate Laravel IDE Helper files" }))
+          
+          -- Install IDE Helper if not already installed
+          vim.keymap.set("n", "<leader>lpi", function()
+            require("laravel-helper").install_ide_helper()
+          end, vim.tbl_extend("force", opts, { desc = "Install Laravel IDE Helper" }))
+          
+          -- Toggle debug mode for Laravel IDE Helper
+          vim.keymap.set("n", "<leader>lpd", function()
+            require("laravel-helper").toggle_debug_mode()
+          end, vim.tbl_extend("force", opts, { desc = "Toggle Laravel IDE Helper debug mode" }))
+          
+          -- Run Artisan commands
+          vim.keymap.set("n", "<leader>lpa", function()
+            require("laravel-helper").run_artisan_command()
+          end, vim.tbl_extend("force", opts, { desc = "Run Laravel Artisan command" }))
+        end
+      end,
+    })
+<
+
+==============================================================================
+9. LICENSE                                   *laravel-helper-license*
+
+MIT
+
+vim:tw=78:ts=8:ft=help:norl:
