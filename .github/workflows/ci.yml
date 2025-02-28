@@ -23,14 +23,12 @@ jobs:
       - name: Install luacheck
         run: luarocks install luacheck
       
-      - name: Install stylua
+      - name: Check formatting with stylua
         uses: JohnnyMorganz/stylua-action@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
-          
-      - name: Check formatting
-        run: stylua --check lua/
+          args: --check lua/
         
       - name: Run Luacheck
         run: luacheck lua/
