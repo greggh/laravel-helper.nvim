@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Check if stylua is installed
+if ! command -v stylua &> /dev/null; then
+  echo "Error: stylua is not installed. Please install it to format Lua code."
+  echo "You can install it from: https://github.com/JohnnyMorganz/StyLua"
+  exit 1
+fi
+
+# Get all staged Lua files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.lua$')
+
+if [ -n "$STAGED_FILES" ]; then
+  echo "Running StyLua on staged Lua files..."
+  
+  # Format all staged Lua files
+  for FILE in $STAGED_FILES; do
+    stylua "$FILE"
+    git add "$FILE"
+  done
+  
+  echo "Lua files have been formatted and staged."
+fi
+
+exit 0

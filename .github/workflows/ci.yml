@@ -23,9 +23,6 @@ jobs:
       - name: Install luacheck
         run: luarocks install luacheck
       
-      - name: Run Luacheck
-        run: luacheck lua/
-      
       - name: Install stylua
         uses: JohnnyMorganz/stylua-action@v3
         with:
@@ -34,6 +31,9 @@ jobs:
           
       - name: Check formatting
         run: stylua --check lua/
+        
+      - name: Run Luacheck
+        run: luacheck lua/
   
   test:
     runs-on: ubuntu-latest

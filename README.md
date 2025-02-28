@@ -262,6 +262,24 @@ Use `:Laravel --help` to see all available commands and their descriptions.
 
 Contributions are welcome! Please check out our [contribution guidelines](CONTRIBUTING.md) for details on how to get started.
 
+### Development Setup
+
+The project uses pre-commit hooks to ensure code quality:
+
+1. Install StyLua: https://github.com/JohnnyMorganz/StyLua
+2. Set up the Git hooks by running:
+```bash
+./scripts/setup-hooks.sh
+```
+
+This will ensure your Lua code is automatically formatted before each commit.
+
+### Code Formatting
+
+- Lua code is formatted using StyLua according to the rules in `stylua.toml`
+- Maximum line length is 120 characters
+- Files are linted using Luacheck according to `.luacheckrc`
+
 ## License
 
 MIT
