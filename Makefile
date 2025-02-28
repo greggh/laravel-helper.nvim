@@ -45,7 +45,11 @@ format:
 # Generate documentation
 docs:
 	@echo "Generating documentation..."
-	@[ -x "$$(command -v ldoc)" ] && ldoc $(LUA_PATH) -d $(DOC_PATH) -c .ldoc.cfg || echo "ldoc not installed. Skipping documentation generation."
+	@if command -v ldoc > /dev/null 2>&1; then \
+		ldoc $(LUA_PATH) -d $(DOC_PATH) -c .ldoc.cfg || true; \
+	else \
+		echo "ldoc not installed. Skipping documentation generation."; \
+	fi
 
 # Clean generated files
 clean:
