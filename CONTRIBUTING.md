@@ -51,7 +51,18 @@ git clone https://github.com/YOUR_USERNAME/laravel-helper.nvim.git
 
 2. Link the repository to your Neovim plugins directory or use your plugin manager's development mode
 
-3. Install development dependencies
+3. Set up the Git hooks for automatic code formatting:
+```bash
+./scripts/setup-hooks.sh
+```
+
+This will set up pre-commit hooks to automatically format Lua code using StyLua before each commit.
+
+### Development Dependencies
+
+- [StyLua](https://github.com/JohnnyMorganz/StyLua) - For automatic code formatting
+- [LuaCheck](https://github.com/mpeterv/luacheck) - For static analysis (linting)
+- [LDoc](https://github.com/lunarmodules/LDoc) - For documentation generation (optional)
 
 ## Coding Standards
 
@@ -63,22 +74,48 @@ git clone https://github.com/YOUR_USERNAME/laravel-helper.nvim.git
 
 ## Lua Style Guide
 
+We use [StyLua](https://github.com/JohnnyMorganz/StyLua) to enforce consistent formatting of the codebase. The formatting is done automatically via pre-commit hooks if you've set them up using the script provided.
+
+Key style guidelines:
+- Configuration is in `stylua.toml` at the project root
+- Maximum line length is 120 characters
 - Use 2 spaces for indentation
-- Keep line length reasonable (preferably under 100 characters)
 - Use local variables when possible
 - Group related functions together
 - Follow existing naming conventions:
   - `snake_case` for variables and functions
   - `PascalCase` for classes and constructors
 
+Files are linted using [LuaCheck](https://github.com/mpeterv/luacheck) according to `.luacheckrc`.
+
 ## Testing
 
 Before submitting your changes, please test them thoroughly:
 
-- Test in different environments (Linux, macOS, Windows)
+### Running Tests
+
+You can run the test suite using the Makefile:
+
+```bash
+# Run all tests
+make test
+
+# Run specific test groups
+make test-basic    # Run only basic functionality tests
+make test-config   # Run only configuration tests
+```
+
+See `test/README.md` for more details on the different test types.
+
+The CI workflow will automatically run these tests against multiple Neovim versions (0.8.0, 0.9.0, stable, and nightly) to ensure compatibility.
+
+### Manual Testing
+
+- Test in different environments (Linux, macOS, Windows if possible)
 - Test with different PHP and Laravel versions
 - Test with and without Laravel Sail
 - Test with both Intelephense and phpactor LSPs
+- Use the minimal test configuration (`tests/minimal-init.lua`) to verify your changes in isolation
 
 ## Documentation
 
@@ -87,6 +124,9 @@ When adding new features, please update the documentation:
 - Update README.md with any new features, configurations, or dependencies
 - Update the Neovim help documentation in doc/laravel-helper.txt
 - Include examples of how to use the new features
+- Add appropriate LDoc annotations if you're modifying the Lua code
+
+The CI workflow will automatically generate documentation using LDoc when changes are pushed to the main branch.
 
 ## License
 
