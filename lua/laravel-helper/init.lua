@@ -4,9 +4,11 @@
 --- Provides IDE helper integration, artisan commands, and more.
 ---@brief ]]
 
----@class LaravelHelper
----@field setup fun(config: table) Configure the plugin
----@field version LaravelHelperVersion Version information
+--- @table M
+--- The main Laravel Helper module
+--- @field setup function Configure the plugin
+--- @field version table Version information
+--- @field core table Core functionality module
 
 local M = {}
 

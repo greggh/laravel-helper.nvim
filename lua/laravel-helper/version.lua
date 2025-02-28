@@ -4,10 +4,12 @@
 --- Used for display and dependency checking.
 ---@brief ]]
 
----@class LaravelHelperVersion
----@field major number Major version (breaking changes)
----@field minor number Minor version (new features)
----@field patch number Patch version (bug fixes)
+--- @table M
+--- Version information for Laravel Helper
+--- @field major number Major version (breaking changes)
+--- @field minor number Minor version (new features)
+--- @field patch number Patch version (bug fixes)
+--- @field string function Returns formatted version string
 
 local M = {
   major = 0,
@@ -16,7 +18,7 @@ local M = {
 }
 
 --- Returns the formatted version string
----@return string Version string in format "major.minor.patch"
+--- @return string Version string in format "major.minor.patch"
 function M.string()
   return string.format("%d.%d.%d", M.major, M.minor, M.patch)
 end

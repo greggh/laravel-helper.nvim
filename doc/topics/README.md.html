@@ -1,0 +1,400 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Laravel Helper Documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>Laravel Helper</h1>
+
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Goals">Goals </a></li>
+<li><a href="#Features">Features </a></li>
+<li><a href="#Requirements">Requirements </a></li>
+<li><a href="#Installation">Installation </a></li>
+<li><a href="#Configuration">Configuration </a></li>
+<li><a href="#Usage">Usage </a></li>
+<li><a href="#Commands">Commands </a></li>
+<li><a href="#Functions">Functions </a></li>
+<li><a href="#Contributing">Contributing </a></li>
+<li><a href="#License">License </a></li>
+</ul>
+
+
+<h2>Topics</h2>
+<ul class="">
+  <li><strong>README.md</strong></li>
+</ul>
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/laravel-helper.html">laravel-helper</a></li>
+  <li><a href="../modules/laravel-helper.commands.html">laravel-helper.commands</a></li>
+  <li><a href="../modules/laravel-helper.config.html">laravel-helper.config</a></li>
+  <li><a href="../modules/laravel-helper.health.html">laravel-helper.health</a></li>
+  <li><a href="../modules/laravel-helper.version.html">laravel-helper.version</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+
+<h1>Laravel-Helper.nvim</h1>
+
+<p><a href="https://github.com/greggh/laravel-helper/actions/workflows/ci.yml"><img src="https://github.com/greggh/laravel-helper/actions/workflows/ci.yml/badge.svg" alt="CI"/></a></p>
+
+<blockquote>
+    <p>⚠️ <strong>WARNING: PRE-ALPHA SOFTWARE</strong> ⚠️ <br/>
+    This plugin is in very early development (first commit, day one). It is currently in the "it works on my machine" phase and has not been thoroughly tested across different environments. Use at your own risk.</p>
+</blockquote>
+
+<p>A very opinionated Neovim plugin for Laravel development, with focus on Laravel IDE Helper integration.</p>
+
+<p><a name="Goals"></a></p>
+<h2>Goals</h2>
+
+<p>The primary goal of this plugin is to create a unified Laravel development experience in Neovim by integrating with the broader Laravel for Neovim ecosystem. This means:</p>
+
+<ul>
+    <li>Depending on and configuring other valuable Laravel/PHP plugins to create a cohesive experience</li>
+    <li>Adding support for Blade, Alpine, Tailwind, and other Laravel-adjacent technologies</li>
+    <li>Providing sensible defaults while allowing customization</li>
+</ul>
+
+<p>Projects we aim to integrate with include:
+- <a href="https://github.com/Dkendal/blade-nav.nvim">blade-nav.nvim</a> - Blade syntax highlighting and navigation
+- <a href="https://github.com/shufo/blade-formatter">blade-formatter</a> - Code formatting for Blade templates
+- <a href="https://github.com/adalessa/laravel.nvim">laravel.nvim</a> - Laravel-specific utilities
+- <a href="https://github.com/EmranMR/tree-sitter-blade">tree-sitter-blade</a> - Enhanced Blade syntax parsing
+- <a href="https://github.com/jcha0713/tailwind-tools.nvim">tailwind-tools.nvim</a> - Tailwind CSS integration
+- <a href="https://github.com/mfussenegger/nvim-dap">nvim-dap</a> with <a href="https://github.com/xdebug/vscode-php-debug">php-debug-adapter</a> - Debugging support
+- <a href="https://github.com/stevearc/conform.nvim">conform.nvim</a> setup for <a href="https://github.com/laravel/pint">Pint</a> and <a href="https://github.com/PHP-CS-Fixer/PHP-CS-Fixer">php-cs-fixer</a> - Code formatting
+- <a href="https://github.com/V13Axel/neotest-pest">neotest-pest</a> - Testing framework integration
+- <a href="https://github.com/L3MON4D3/LuaSnip">LuaSnip</a> - Laravel-specific snippets
+- Support for both <a href="https://github.com/bmewburn/intelephense-docs">Intelephense</a> and <a href="https://github.com/phpactor/phpactor">phpactor</a> LSPs</p>
+
+<p><a name="Features"></a></p>
+<h2>Features</h2>
+
+<ul>
+    <li>Automatic detection of Laravel projects</li>
+    <li>IDE Helper integration with support for PHP and Laravel Sail</li>
+    <li>Automatic installation and generation of IDE Helper files</li>
+    <li>Artisan command integration</li>
+    <li>Support for running in Docker/Sail environments</li>
+    <li>Advanced debugging features</li>
+</ul>
+
+<p><a name="Requirements"></a></p>
+<h2>Requirements</h2>
+
+<ul>
+    <li>Neovim >= 0.8.0</li>
+    <li>PHP installed locally, or Laravel Sail configured</li>
+</ul>
+
+<h3>Core Dependencies</h3>
+<p>- <a href="https://github.com/MunifTanjim/nui.nvim">nui.nvim</a> - UI components for improved interface</p>
+
+<h3>Recommended Dependencies</h3>
+<p>The following plugins provide the enhanced command interface with subcommands and automatic help:
+- <a href="https://github.com/ColinKennedy/mega.cmdparse">mega.cmdparse</a> - Command parsing and interface (optional but recommended)
+- <a href="https://github.com/ColinKennedy/mega.logging">mega.logging</a> - Logging utilities (required by mega.cmdparse)</p>
+
+<p>Without these, the plugin will fall back to the legacy command interface.</p>
+
+<h3>Recommended Laravel Ecosystem Plugins</h3>
+<p>For a complete Laravel development environment, we recommend the following plugins:
+- <a href="https://github.com/folke/lazy.nvim">lazy.nvim</a> - Plugin manager
+- <a href="https://github.com/nvim-lua/plenary.nvim">plenary.nvim</a> - Lua utilities
+- <a href="https://github.com/nvim-neotest/nvim-nio">nvim-nio</a> - Async IO
+- <a href="https://github.com/neovim/nvim-lspconfig">nvim-lspconfig</a> - LSP configuration
+- <a href="https://github.com/williamboman/mason.nvim">mason.nvim</a> - Package manager
+- <a href="https://github.com/williamboman/mason-lspconfig.nvim">mason-lspconfig.nvim</a> - Mason LSP integration
+- <a href="https://github.com/WhoIsSethDaniel/mason-tool-installer">mason-tool-installer</a> - Tool installer
+- <a href="https://github.com/nvim-treesitter/nvim-treesitter">nvim-treesitter</a> - Syntax parsing
+- <a href="https://github.com/windwp/nvim-ts-autotag">nvim-ts-autotag</a> - Auto close/rename tags
+- <a href="https://github.com/nvim-treesitter/nvim-treesitter-context">nvim-treesitter-context</a> - Code context
+- <a href="https://github.com/nvim-treesitter/nvim-treesitter-textobjects">nvim-treesitter-textobjects</a> - Text objects
+- <a href="https://github.com/stevearc/conform.nvim">conform.nvim</a> - Code formatting
+- <a href="https://github.com/mfussenegger/nvim-lint">nvim-lint</a> - Linting
+- <a href="https://github.com/mfussenegger/nvim-dap">nvim-dap</a> - Debug adapter
+- <a href="https://github.com/rcarriga/nvim-dap-ui">nvim-dap-ui</a> - Debug UI
+- <a href="https://github.com/theHamsta/nvim-dap-virtual-text">nvim-dap-virtual-text</a> - Debug virtual text
+- <a href="https://github.com/nvim-neotest/neotest">neotest</a> - Testing framework
+- <a href="https://github.com/nvim-neotest/neotest-plenary">neotest-plenary</a> - Plenary test adapter
+- <a href="https://github.com/V13Axel/neotest-pest">neotest-pest</a> - Pest test adapter
+- <a href="https://github.com/L3MON4D3/LuaSnip">LuaSnip</a> - Snippet engine
+- <a href="https://github.com/rafamidriz/friendly-snippets">friendly-snippets</a> - Snippet collection
+- <a href="https://github.com/saghen/blink.cmp">blink.cmp</a> - Blink CMP integration
+- <a href="https://github.com/saghen/blink.compat">blink.compat</a> - Blink compatibility
+- <a href="https://github.com/mikavilpas/blink-ripgrep.nvim">blink-ripgrep.nvim</a> - Blink ripgrep integration
+- <a href="https://github.com/dmitmel/cmp-cmdline-history">cmp-cmdline-history</a> - Command line history
+- <a href="https://github.com/Dkendal/blade-nav.nvim">blade-nav.nvim</a> - Blade syntax highlighting and navigation
+- <a href="https://github.com/EmranMR/tree-sitter-blade">tree-sitter-blade</a> - Enhanced Blade syntax parsing
+- <a href="https://github.com/phpactor/phpactor">phpactor</a> - PHP language server</p>
+
+<p><a name="Installation"></a></p>
+<h2>Installation</h2>
+
+<h3>Using <a href="https://github.com/folke/lazy.nvim">lazy.nvim</a></h3>
+
+
+<pre>
+{
+  <span class="string">"greggh/laravel-helper.nvim"</span>,
+  dependencies = {
+    <span class="comment">-- Enhanced command interface
+</span>    <span class="string">"ColinKennedy/mega.cmdparse"</span>,  <span class="comment">-- Optional but recommended
+</span>    <span class="string">"ColinKennedy/mega.logging"</span>,   <span class="comment">-- Required by mega.cmdparse
+</span>
+    <span class="comment">-- Core dependencies
+</span>    <span class="string">"MunifTanjim/nui.nvim"</span>,
+
+    <span class="comment">-- Additional recommended Laravel ecosystem dependencies
+</span>    <span class="string">"folke/lazy.nvim"</span>,
+    <span class="string">"nvim-lua/plenary.nvim"</span>,
+    <span class="string">"nvim-neotest/nvim-nio"</span>,
+    <span class="string">"neovim/nvim-lspconfig"</span>,
+    <span class="string">"williamboman/mason.nvim"</span>,
+    <span class="string">"williamboman/mason-lspconfig.nvim"</span>,
+    <span class="string">"WhoIsSethDaniel/mason-tool-installer"</span>,
+    <span class="string">"nvim-treesitter/nvim-treesitter"</span>,
+    <span class="string">"windwp/nvim-ts-autotag"</span>,
+    <span class="string">"nvim-treesitter/nvim-treesitter-context"</span>,
+    <span class="string">"nvim-treesitter/nvim-treesitter-textobjects"</span>,
+    <span class="string">"stevearc/conform.nvim"</span>,
+    <span class="string">"mfussenegger/nvim-lint"</span>,
+    <span class="string">"mfussenegger/nvim-dap"</span>,
+    <span class="string">"rcarriga/nvim-dap-ui"</span>,
+    <span class="string">"theHamsta/nvim-dap-virtual-text"</span>,
+    <span class="string">"nvim-neotest/neotest"</span>,
+    <span class="string">"nvim-neotest/neotest-plenary"</span>,
+    <span class="string">"V13Axel/neotest-pest"</span>,
+    <span class="string">"L3MON4D3/LuaSnip"</span>,
+    <span class="string">"rafamidriz/friendly-snippets"</span>,
+    <span class="string">"saghen/blink.cmp"</span>,
+    <span class="string">"saghen/blink.compat"</span>,
+    <span class="string">"mikavilpas/blink-ripgrep.nvim"</span>,
+    <span class="string">"dmitmel/cmp-cmdline-history"</span>,
+  },
+  ft = { <span class="string">"php"</span>, <span class="string">"blade"</span> },
+  config = <span class="keyword">function</span>()
+    <span class="global">require</span>(<span class="string">"laravel-helper"</span>).<span class="function-name">setup</span>({
+      <span class="comment">-- Optional configuration options
+</span>    })
+  <span class="keyword">end</span>,
+}
+</pre>
+
+
+<h3>Using <a href="https://github.com/wbthomason/packer.nvim">packer.nvim</a></h3>
+
+
+<pre>
+<span class="function-name">use</span> {
+  <span class="string">'greggh/laravel-helper.nvim'</span>,
+  requires = {
+    <span class="comment">-- Enhanced command interface
+</span>    <span class="string">'ColinKennedy/mega.cmdparse'</span>,  <span class="comment">-- Optional but recommended
+</span>    <span class="string">'ColinKennedy/mega.logging'</span>,   <span class="comment">-- Required by mega.cmdparse
+</span>
+    <span class="comment">-- Core dependencies
+</span>    <span class="string">'MunifTanjim/nui.nvim'</span>,
+  },
+  config = <span class="keyword">function</span>()
+    <span class="global">require</span>(<span class="string">'laravel-helper'</span>).<span class="function-name">setup</span>()
+  <span class="keyword">end</span>
+}
+</pre>
+
+
+<h3>Using <a href="https://github.com/junegunn/vim-plug">vim-plug</a></h3>
+
+
+<pre>
+<span class="string">" Core and enhanced command interface
+Plug 'MunifTanjim/nui.nvim'
+Plug 'ColinKennedy/mega.logging'   "</span> Required by mega.cmdparse
+<span class="function-name">Plug</span> <span class="string">'ColinKennedy/mega.cmdparse'</span>  <span class="string">" Optional but recommended
+Plug 'greggh/laravel-helper.nvim'
+
+"</span> Then <span class="keyword">in</span> your init.vim
+lua <span class="global">require</span>(<span class="string">'laravel-helper'</span>).<span class="function-name">setup</span>()
+</pre>
+
+
+<p><a name="Configuration"></a></p>
+<h2>Configuration</h2>
+
+
+<pre>
+<span class="global">require</span>(<span class="string">"laravel-helper"</span>).<span class="function-name">setup</span>({
+  <span class="comment">-- Whether to automatically detect Laravel projects and offer IDE Helper generation
+</span>  auto_detect = <span class="keyword">true</span>,
+
+  <span class="comment">-- Default timeout for Sail/Docker operations (in milliseconds)
+</span>  docker_timeout = <span class="number">360000</span>, <span class="comment">-- 6 minutes
+</span>
+  <span class="comment">-- Whether to automatically use Sail when available
+</span>  prefer_sail = <span class="keyword">true</span>,
+
+  <span class="comment">-- Commands to run for IDE Helper generation
+</span>  commands = {
+    <span class="string">"ide-helper:generate"</span>,    <span class="comment">-- PHPDoc generation for Laravel classes
+</span>    <span class="string">"ide-helper:models"</span>,      <span class="comment">-- PHPDoc generation for models
+</span>    <span class="string">"ide-helper:meta"</span>,        <span class="comment">-- PhpStorm Meta file generation
+</span>  }
+})
+</pre>
+
+
+<p><a name="Usage"></a></p>
+<h2>Usage</h2>
+
+<h3>Key Mappings</h3>
+
+<p>By default, the plugin doesn't set any key mappings. You can add your own like this:</p>
+
+
+<pre>
+vim.api.<span class="function-name">nvim_create_autocmd</span>(<span class="string">"FileType"</span>, {
+  pattern = <span class="string">"php"</span>,
+  callback = <span class="keyword">function</span>()
+    <span class="comment">-- Only set up mappings in Laravel projects
+</span>    <span class="keyword">if</span> <span class="global">require</span>(<span class="string">"laravel-helper"</span>).<span class="function-name">is_laravel_project</span>() <span class="keyword">then</span>
+      <span class="keyword">local</span> opts = { buffer = <span class="number">0</span>, silent = <span class="keyword">true</span> }
+
+      <span class="comment">-- Generate IDE Helper files
+</span>      vim.keymap.<span class="function-name">set</span>(<span class="string">"n"</span>, <span class="string">"&lt;leader&gt;lph"</span>, <span class="keyword">function</span>()
+        <span class="global">require</span>(<span class="string">"laravel-helper"</span>).<span class="function-name">generate_ide_helper</span>(<span class="keyword">true</span>)
+      <span class="keyword">end</span>, vim.<span class="function-name">tbl_extend</span>(<span class="string">"force"</span>, opts, { desc = <span class="string">"Generate Laravel IDE Helper files"</span> }))
+
+      <span class="comment">-- Install IDE Helper if not already installed
+</span>      vim.keymap.<span class="function-name">set</span>(<span class="string">"n"</span>, <span class="string">"&lt;leader&gt;lpi"</span>, <span class="keyword">function</span>()
+        <span class="global">require</span>(<span class="string">"laravel-helper"</span>).<span class="function-name">install_ide_helper</span>()
+      <span class="keyword">end</span>, vim.<span class="function-name">tbl_extend</span>(<span class="string">"force"</span>, opts, { desc = <span class="string">"Install Laravel IDE Helper"</span> }))
+
+      <span class="comment">-- Toggle debug mode for Laravel IDE Helper
+</span>      vim.keymap.<span class="function-name">set</span>(<span class="string">"n"</span>, <span class="string">"&lt;leader&gt;lpd"</span>, <span class="keyword">function</span>()
+        <span class="global">require</span>(<span class="string">"laravel-helper"</span>).<span class="function-name">toggle_debug_mode</span>()
+      <span class="keyword">end</span>, vim.<span class="function-name">tbl_extend</span>(<span class="string">"force"</span>, opts, { desc = <span class="string">"Toggle Laravel IDE Helper debug mode"</span> }))
+
+      <span class="comment">-- Run Artisan commands
+</span>      vim.keymap.<span class="function-name">set</span>(<span class="string">"n"</span>, <span class="string">"&lt;leader&gt;lpa"</span>, <span class="keyword">function</span>()
+        <span class="global">require</span>(<span class="string">"laravel-helper"</span>).<span class="function-name">run_artisan_command</span>()
+      <span class="keyword">end</span>, vim.<span class="function-name">tbl_extend</span>(<span class="string">"force"</span>, opts, { desc = <span class="string">"Run Laravel Artisan command"</span> }))
+    <span class="keyword">end</span>
+  <span class="keyword">end</span>,
+})
+</pre>
+
+
+<p><a name="Commands"></a></p>
+<h2>Commands</h2>
+
+<h3>Enhanced Command Structure (requires mega.cmdparse)</h3>
+
+<p>When the plugin is installed with the optional mega.cmdparse dependency, it provides a structured command interface:</p>
+
+<pre><code> :Laravel artisan &lt;args&gt;            - Run Laravel Artisan commands
+ :Laravel ide-helper generate       - Generate Laravel IDE Helper files
+ :Laravel ide-helper generate --use-sail - Generate IDE Helper files using Sail
+ :Laravel ide-helper install        - Install Laravel IDE Helper package
+ :Laravel ide-helper debug          - Toggle debug mode for IDE Helper
+</code></pre>
+
+
+<p>Use <code>:Laravel --help</code> to see all available commands and their descriptions.</p>
+
+<h3>Legacy Commands</h3>
+
+<pre><code> :LaravelArtisan &lt;args&gt;             - Run Laravel Artisan commands
+ :LaravelGenerateIDEHelper [php|sail] - Generate Laravel IDE Helper files
+ :LaravelInstallIDEHelper           - Install Laravel IDE Helper package
+ :LaravelIDEHelperToggleDebug       - Toggle debug mode for IDE Helper
+</code></pre>
+
+
+<p><a name="Functions"></a></p>
+<h2>Functions</h2>
+
+<ul>
+    <li><code>is_laravel_project()</code>: Check if current directory is a Laravel project</li>
+    <li><code>install_ide_helper()</code>: Install Laravel IDE Helper package</li>
+    <li><code>generate_ide_helper(force)</code>: Generate IDE Helper files</li>
+    <li><code>toggle_debug_mode()</code>: Toggle detailed debug output</li>
+    <li><code>run_artisan_command(command)</code>: Run an artisan command with output capture</li>
+    <li><code>with_sail_or_php(command)</code>: Run a command using Sail when available, falling back to PHP</li>
+    <li><code>get_sail_or_php_command(command)</code>: Get the command string to run with either Sail or standard PHP</li>
+</ul>
+
+<p><a name="Contributing"></a></p>
+<h2>Contributing</h2>
+
+<p>Contributions are welcome! Please check out our <a href="CONTRIBUTING.md">contribution guidelines</a> for details on how to get started.</p>
+
+<h3>Development Setup</h3>
+
+<p>The project uses pre-commit hooks to ensure code quality:</p>
+
+<ol>
+    <li>Install StyLua: https://github.com/JohnnyMorganz/StyLua</li>
+    <li>Set up the Git hooks by running:
+
+<pre>
+./scripts/setup-hooks.sh
+</pre>
+</li>
+</ol>
+
+<p>This will ensure your Lua code is automatically formatted before each commit.</p>
+
+<h3>Code Formatting</h3>
+
+<ul>
+    <li>Lua code is formatted using StyLua according to the rules in <code>stylua.toml</code></li>
+    <li>Maximum line length is 120 characters</li>
+    <li>Files are linted using Luacheck according to <code>.luacheckrc</code></li>
+</ul>
+
+<p><a name="License"></a></p>
+<h2>License</h2>
+
+<p>MIT</p>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/lunarmodules/LDoc">LDoc 1.5.0</a></i>
+<i style="float:right;">Last updated 2025-02-28 17:52:02 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

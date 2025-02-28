@@ -5,8 +5,9 @@
 --- autocompletion and help documentation.
 ---@brief ]]
 
----@class LaravelHelperCommands
----@field setup_commands fun() Set up Laravel Helper commands
+--- @table M
+--- The commands module table
+--- @field setup_commands function Set up Laravel Helper commands
 
 local M = {}
 

@@ -7,11 +7,12 @@
 local M = {}
 
 --- Default configuration
----@class LaravelHelperConfig
----@field auto_detect boolean Whether to automatically detect Laravel projects and offer IDE Helper generation
----@field docker_timeout number Default timeout for Sail/Docker operations (in milliseconds)
----@field prefer_sail boolean Whether to automatically use Sail when available
----@field commands string[] Commands to run for IDE Helper generation
+--- @table defaults
+--- Configuration default values
+--- @field auto_detect boolean Whether to automatically detect Laravel projects and offer IDE Helper generation
+--- @field docker_timeout number Default timeout for Sail/Docker operations (in milliseconds)
+--- @field prefer_sail boolean Whether to automatically use Sail when available
+--- @field commands table Array of commands to run for IDE Helper generation
 M.defaults = {
   -- Whether to automatically detect Laravel projects and offer IDE Helper generation
   auto_detect = true,
@@ -31,9 +32,9 @@ M.defaults = {
 }
 
 --- Validate configuration values
----@param config LaravelHelperConfig Configuration table to validate
----@return boolean is_valid
----@return string? error_message Error message if validation fails
+--- @param config table Configuration table to validate
+--- @return boolean is_valid
+--- @return string|nil error_message Error message if validation fails
 function M.validate(config)
   -- Basic type validation
   local validation_config = {
@@ -66,10 +67,10 @@ function M.validate(config)
 end
 
 --- Merge default configuration with user configuration
----@param user_config? table User-provided configuration values
----@return LaravelHelperConfig merged_config
----@return boolean is_valid
----@return string? error_message Error message if validation fails
+--- @param user_config table|nil User-provided configuration values
+--- @return table merged_config The merged configuration
+--- @return boolean is_valid Whether the configuration is valid
+--- @return string|nil error_message Error message if validation fails
 function M.merge(user_config)
   local merged = vim.deepcopy(M.defaults)
 
