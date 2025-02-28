@@ -1609,7 +1609,8 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
                 -- Detected database connection issue
                 M.last_db_connection_failed = true
                 log_to_buffer({
-                  "DATABASE CONNECTION ERROR DETECTED: This might be because the database is not ready or properly configured.",
+                  "DATABASE CONNECTION ERROR DETECTED:",
+                  "This might be because the database is not ready or properly configured.",
                   "Consider running 'php artisan migrate' manually if this is a fresh Laravel project.",
                 })
               elseif
@@ -2316,9 +2317,12 @@ function M.generate_ide_helper(force, use_sail_override)
     table.insert(commands, "./vendor/bin/sail php artisan migrate --quiet") -- Run migrations with minimal output
 
     -- Add IDE helper commands with Sail prefix
-    table.insert(commands, "./vendor/bin/sail php artisan ide-helper:generate --quiet") -- Generates basic PHPDoc with minimal output
-    table.insert(commands, "./vendor/bin/sail php artisan ide-helper:models -N --quiet") -- Generates PHPDocs for models with minimal output
-    table.insert(commands, "./vendor/bin/sail php artisan ide-helper:meta --quiet") -- Generates PhpStorm meta file with minimal output
+    -- Generates basic PHPDoc with minimal output
+    table.insert(commands, "./vendor/bin/sail php artisan ide-helper:generate --quiet")
+    -- Generates PHPDocs for models with minimal output
+    table.insert(commands, "./vendor/bin/sail php artisan ide-helper:models -N --quiet")
+    -- Generates PhpStorm meta file with minimal output
+    table.insert(commands, "./vendor/bin/sail php artisan ide-helper:meta --quiet")
   else
     -- Not using Sail, use standard PHP versions
 
@@ -2333,12 +2337,16 @@ function M.generate_ide_helper(force, use_sail_override)
       }"
     ]]
     table.insert(commands, php_db_test_cmd)
-    table.insert(commands, "php artisan migrate --quiet") -- Add migration after connection check with minimal output
+    -- Add migration after connection check with minimal output
+    table.insert(commands, "php artisan migrate --quiet")
 
     -- Add standard PHP IDE helper commands
-    table.insert(commands, "php artisan ide-helper:generate --quiet") -- Generates basic PHPDoc with minimal output
-    table.insert(commands, "php artisan ide-helper:models -N --quiet") -- Generates PHPDocs for models with minimal output
-    table.insert(commands, "php artisan ide-helper:meta --quiet") -- Generates PhpStorm meta file with minimal output
+    -- Generates basic PHPDoc with minimal output
+    table.insert(commands, "php artisan ide-helper:generate --quiet")
+    -- Generates PHPDocs for models with minimal output
+    table.insert(commands, "php artisan ide-helper:models -N --quiet")
+    -- Generates PhpStorm meta file with minimal output
+    table.insert(commands, "php artisan ide-helper:meta --quiet")
   end
 
   -- Construct full commands with proper cwd
@@ -2638,7 +2646,8 @@ function M.check_laravel_project()
           "declined",
           "Would you like to remember this choice for this Laravel project?\n"
             .. "This will prevent future installation prompts.",
-          "Preference saved in .nvim-helper. To enable installation prompts again, edit 'ide_helper_install=declined' to 'prompt'."
+          "Preference saved in .nvim-helper.",
+          "To enable installation prompts again, edit 'ide_helper_install=declined' to 'prompt'."
         )
       end
     elseif not M.ide_helper_files_exist() then
@@ -2669,7 +2678,8 @@ function M.check_laravel_project()
           "declined",
           "Would you like to remember this choice for this Laravel project?\n"
             .. "This will prevent future file generation prompts.",
-          "Preference saved in .nvim-helper. To enable generation prompts again, edit 'ide_helper_generate=declined' to 'prompt'."
+          "Preference saved in .nvim-helper.",
+          "To enable generation prompts again, edit 'ide_helper_generate=declined' to 'prompt'."
         )
       end
     end
