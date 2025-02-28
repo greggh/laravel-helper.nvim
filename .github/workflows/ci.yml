@@ -20,6 +20,9 @@ jobs:
       - name: Install LuaRocks
         uses: leafo/gh-actions-luarocks@v4
       
+      - name: Create cache directories
+        run: mkdir -p ~/.luarocks
+      
       - name: Cache LuaRocks dependencies
         uses: actions/cache@v3
         with:
@@ -65,6 +68,11 @@ jobs:
       
       - name: Install LuaRocks
         uses: leafo/gh-actions-luarocks@v4
+      
+      - name: Create cache directories
+        run: |
+          mkdir -p ~/.luarocks
+          mkdir -p ~/.local/share/nvim/site/pack
       
       - name: Cache LuaRocks dependencies
         uses: actions/cache@v3
@@ -124,6 +132,9 @@ jobs:
       
       - name: Install LuaRocks
         uses: leafo/gh-actions-luarocks@v4
+      
+      - name: Create cache directories
+        run: mkdir -p ~/.luarocks
       
       - name: Cache LuaRocks dependencies
         uses: actions/cache@v3
