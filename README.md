@@ -14,7 +14,7 @@ The primary goal of this plugin is to create a unified Laravel development exper
 - Providing sensible defaults while allowing customization
 
 Projects we aim to integrate with include:
-- blade-nave.nvim - Blade syntax highlighting and navigation
+- blade-nav.nvim - Blade syntax highlighting and navigation
 - blade-formatter - Code formatting for Blade templates
 - laravel.nvim - Laravel-specific utilities
 - tree-sitter-blade - Enhanced Blade syntax parsing
