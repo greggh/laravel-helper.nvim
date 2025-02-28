@@ -119,13 +119,22 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 ```
 
+## Commands
+
+- `:LaravelGenerateIDEHelper`: Generate Laravel IDE Helper files
+- `:LaravelInstallIDEHelper`: Install Laravel IDE Helper package
+- `:LaravelIDEHelperToggleDebug`: Toggle debug mode
+- `:LaravelArtisan [command]`: Run Laravel Artisan command
+
 ## Functions
 
 - `is_laravel_project()`: Check if current directory is a Laravel project
 - `install_ide_helper()`: Install Laravel IDE Helper package
 - `generate_ide_helper(force)`: Generate IDE Helper files
 - `toggle_debug_mode()`: Toggle detailed debug output
-- `run_artisan_command()`: Run an artisan command with output capture
+- `run_artisan_command(command)`: Run an artisan command with output capture
+- `with_sail_or_php(command)`: Run a command using Sail when available, falling back to PHP
+- `get_sail_or_php_command(command)`: Get the command string to run with either Sail or standard PHP
 
 ## License
 

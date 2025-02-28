@@ -87,6 +87,7 @@ Laravel Helper provides the following commands:
 :LaravelGenerateIDEHelper                Generate Laravel IDE Helper files
 :LaravelInstallIDEHelper                 Install Laravel IDE Helper package
 :LaravelIDEHelperToggleDebug             Toggle debug mode
+:LaravelArtisan [command]                Run Laravel Artisan command
 
 ==============================================================================
 7. FUNCTIONS                                 *laravel-helper-functions*

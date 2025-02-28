@@ -76,15 +76,22 @@ function M.toggle_debug_mode()
 end
 
 -- Run an Artisan command with UI prompt
-function M.run_artisan_command()
-  vim.ui.input({
-    prompt = "Artisan command: ",
-    default = "route:list",
-  }, function(input)
-    if input and input ~= "" then
-      M.core.run_artisan_command(input)
-    end
-  end)
+function M.run_artisan_command(command)
+  if not command then
+    -- If no command was provided, prompt the user
+    vim.ui.input({
+      prompt = "Artisan command: ",
+      default = "route:list",
+    }, function(input)
+      if input and input ~= "" then
+        M.run_artisan_command(input)
+      end
+    end)
+    return
+  end
+  
+  -- If command was provided, pass it directly to core
+  return M.core.run_artisan_command(command)
 end
 
 -- Check if this is a Laravel project
@@ -95,6 +102,15 @@ end
 -- Use Sail to run a command if available, otherwise use PHP
 function M.with_sail_or_php(cmd)
   return M.core.with_sail_or_php(cmd)
+end
+
+-- Get the command to run with either Sail or standard PHP
+function M.get_sail_or_php_command(cmd)
+  local result = M.core.with_sail_or_php(cmd)
+  if result then
+    return result.command
+  end
+  return nil
 end
 
 -- Forward other calls to core module
