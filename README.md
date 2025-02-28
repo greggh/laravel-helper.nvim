@@ -36,35 +36,49 @@ Projects we aim to integrate with include:
 
 ## Requirements
 
-- Neovim >= 0.10.0
+- Neovim >= 0.8.0
 - PHP installed locally, or Laravel Sail configured
-- Required plugins:
-  - [lazy.nvim](https://github.com/folke/lazy.nvim) - Plugin manager
-  - [nui.nvim](https://github.com/MunifTanjim/nui.nvim) - UI components
-  - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) - Lua utilities
-  - [nvim-nio](https://github.com/nvim-neotest/nvim-nio) - Async IO
-  - [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) - LSP configuration
-  - [mason.nvim](https://github.com/williamboman/mason.nvim) - Package manager
-  - [mason-lspconfig.nvim](https://github.com/williamboman/mason-lspconfig.nvim) - Mason LSP integration
-  - [mason-tool-installer](https://github.com/WhoIsSethDaniel/mason-tool-installer) - Tool installer
-  - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - Syntax parsing
-  - [nvim-ts-autotag](https://github.com/windwp/nvim-ts-autotag) - Auto close/rename tags
-  - [nvim-treesitter-context](https://github.com/nvim-treesitter/nvim-treesitter-context) - Code context
-  - [nvim-treesitter-textobjects](https://github.com/nvim-treesitter/nvim-treesitter-textobjects) - Text objects
-  - [conform.nvim](https://github.com/stevearc/conform.nvim) - Code formatting
-  - [nvim-lint](https://github.com/mfussenegger/nvim-lint) - Linting
-  - [nvim-dap](https://github.com/mfussenegger/nvim-dap) - Debug adapter
-  - [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - Debug UI
-  - [nvim-dap-virtual-text](https://github.com/theHamsta/nvim-dap-virtual-text) - Debug virtual text
-  - [neotest](https://github.com/nvim-neotest/neotest) - Testing framework
-  - [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary) - Plenary test adapter
-  - [neotest-pest](https://github.com/V13Axel/neotest-pest) - Pest test adapter
-  - [LuaSnip](https://github.com/L3MON4D3/LuaSnip) - Snippet engine
-  - [friendly-snippets](https://github.com/rafamidriz/friendly-snippets) - Snippet collection
-  - [blink.cmp](https://github.com/saghen/blink.cmp) - Blink CMP integration
-  - [blink.compat](https://github.com/saghen/blink.compat) - Blink compatibility
-  - [blink-ripgrep.nvim](https://github.com/mikavilpas/blink-ripgrep.nvim) - Blink ripgrep integration
-  - [cmp-cmdline-history](https://github.com/dmitmel/cmp-cmdline-history) - Command line history
+
+### Core Dependencies
+- [nui.nvim](https://github.com/MunifTanjim/nui.nvim) - UI components for improved interface
+
+### Enhanced Command Interface Dependencies
+The following plugins are required for the enhanced command interface with subcommands and automatic help:
+- [mega.cmdparse](https://github.com/ColinKennedy/mega.cmdparse) - Command parsing and interface
+- [mega.logging](https://github.com/ColinKennedy/mega.logging) - Logging utilities (required by mega.cmdparse)
+
+Without these, the plugin will fall back to the legacy command interface.
+
+### Recommended Laravel Ecosystem Plugins
+For a complete Laravel development environment, we recommend the following plugins:
+- [lazy.nvim](https://github.com/folke/lazy.nvim) - Plugin manager
+- [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) - Lua utilities
+- [nvim-nio](https://github.com/nvim-neotest/nvim-nio) - Async IO
+- [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) - LSP configuration
+- [mason.nvim](https://github.com/williamboman/mason.nvim) - Package manager
+- [mason-lspconfig.nvim](https://github.com/williamboman/mason-lspconfig.nvim) - Mason LSP integration
+- [mason-tool-installer](https://github.com/WhoIsSethDaniel/mason-tool-installer) - Tool installer
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - Syntax parsing
+- [nvim-ts-autotag](https://github.com/windwp/nvim-ts-autotag) - Auto close/rename tags
+- [nvim-treesitter-context](https://github.com/nvim-treesitter/nvim-treesitter-context) - Code context
+- [nvim-treesitter-textobjects](https://github.com/nvim-treesitter/nvim-treesitter-textobjects) - Text objects
+- [conform.nvim](https://github.com/stevearc/conform.nvim) - Code formatting
+- [nvim-lint](https://github.com/mfussenegger/nvim-lint) - Linting
+- [nvim-dap](https://github.com/mfussenegger/nvim-dap) - Debug adapter
+- [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - Debug UI
+- [nvim-dap-virtual-text](https://github.com/theHamsta/nvim-dap-virtual-text) - Debug virtual text
+- [neotest](https://github.com/nvim-neotest/neotest) - Testing framework
+- [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary) - Plenary test adapter
+- [neotest-pest](https://github.com/V13Axel/neotest-pest) - Pest test adapter
+- [LuaSnip](https://github.com/L3MON4D3/LuaSnip) - Snippet engine
+- [friendly-snippets](https://github.com/rafamidriz/friendly-snippets) - Snippet collection
+- [blink.cmp](https://github.com/saghen/blink.cmp) - Blink CMP integration
+- [blink.compat](https://github.com/saghen/blink.compat) - Blink compatibility
+- [blink-ripgrep.nvim](https://github.com/mikavilpas/blink-ripgrep.nvim) - Blink ripgrep integration
+- [cmp-cmdline-history](https://github.com/dmitmel/cmp-cmdline-history) - Command line history
+- [blade-nav.nvim](https://github.com/Dkendal/blade-nav.nvim) - Blade syntax highlighting and navigation
+- [tree-sitter-blade](https://github.com/EmranMR/tree-sitter-blade) - Enhanced Blade syntax parsing
+- [phpactor](https://github.com/phpactor/phpactor) - PHP language server
 
 ## Installation
 
@@ -74,8 +88,15 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 {
   "greggh/laravel-helper.nvim",
   dependencies = {
-    "folke/lazy.nvim",
+    -- Enhanced command interface (optional but recommended)
+    "ColinKennedy/mega.cmdparse", 
+    "ColinKennedy/mega.logging",  -- Required by mega.cmdparse
+    
+    -- Core dependencies
     "MunifTanjim/nui.nvim",
+    
+    -- Additional recommended Laravel ecosystem dependencies
+    "folke/lazy.nvim",
     "nvim-lua/plenary.nvim",
     "nvim-neotest/nvim-nio",
     "neovim/nvim-lspconfig",
@@ -172,10 +193,28 @@ vim.api.nvim_create_autocmd("FileType", {
 
 ## Commands
 
-- `:LaravelGenerateIDEHelper`: Generate Laravel IDE Helper files
-- `:LaravelInstallIDEHelper`: Install Laravel IDE Helper package
-- `:LaravelIDEHelperToggleDebug`: Toggle debug mode
-- `:LaravelArtisan [command]`: Run Laravel Artisan command
+### Enhanced Command Structure (requires mega.cmdparse)
+
+When the plugin is installed with the optional mega.cmdparse dependency, it provides a structured command interface:
+
+```
+:Laravel artisan <args>            - Run Laravel Artisan commands
+:Laravel ide-helper generate       - Generate Laravel IDE Helper files
+:Laravel ide-helper generate --use-sail - Generate IDE Helper files using Sail
+:Laravel ide-helper install        - Install Laravel IDE Helper package
+:Laravel ide-helper debug          - Toggle debug mode for IDE Helper
+```
+
+Use `:Laravel --help` to see all available commands and their descriptions.
+
+### Legacy Commands
+
+```
+:LaravelArtisan <args>             - Run Laravel Artisan commands
+:LaravelGenerateIDEHelper [php|sail] - Generate Laravel IDE Helper files 
+:LaravelInstallIDEHelper           - Install Laravel IDE Helper package
+:LaravelIDEHelperToggleDebug       - Toggle debug mode for IDE Helper
+```
 
 ## Functions
 

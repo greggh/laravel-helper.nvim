@@ -1,6 +1,20 @@
+---@mod laravel-helper Laravel Helper for Neovim
+---@brief [[
+--- A plugin to enhance Laravel development in Neovim
+--- Provides IDE helper integration, artisan commands, and more.
+---@brief ]]
+
+---@class LaravelHelper
+---@field setup fun(config: table) Configure the plugin
+
 local M = {}
 
 -- Default configuration
+---@class LaravelHelperConfig
+---@field auto_detect boolean Whether to automatically detect Laravel projects and offer IDE Helper generation
+---@field docker_timeout number Default timeout for Sail/Docker operations (in milliseconds)
+---@field prefer_sail boolean Whether to automatically use Sail when available 
+---@field commands string[] Commands to run for IDE Helper generation
 M.config = {
   -- Whether to automatically detect Laravel projects and offer IDE Helper generation
   auto_detect = true,
@@ -19,19 +33,31 @@ M.config = {
   }
 }
 
--- Require core functionality
-M.core = require("laravel-helper.core")
+-- Require core functionality lazily
+M.core = nil
 
 -- Helper to check if we're in a Laravel project
+---@return boolean
 function M.is_laravel_project()
+  -- Lazily load core module when needed
+  if not M.core then 
+    M.core = require("laravel-helper.core")
+  end
   return M.core.find_laravel_root() ~= nil
 end
 
 -- Setup function to configure the plugin
+---@param user_config? table User configuration
+---@return LaravelHelper
 function M.setup(user_config)
   -- Merge user config with defaults
   if user_config then
     M.config = vim.tbl_deep_extend("force", M.config, user_config)
+  end
+  
+  -- Lazily load core module
+  if not M.core then
+    M.core = require("laravel-helper.core")
   end
   
   -- Initialize the core functionality
@@ -42,11 +68,35 @@ function M.setup(user_config)
     M.setup_auto_detection()
   end
   
+  -- Only setup commands if mega.cmdparse is available
+  local has_mega_cmdparse, _ = pcall(require, "mega.cmdparse")
+  if has_mega_cmdparse then
+    -- Setup the new command structure
+    local commands = require("laravel-helper.commands")
+    commands.setup_commands()
+  else
+    -- Fall back to old command structure
+    M.core.setup_auto_ide_helper()
+    
+    -- Warn the user about missing mega.cmdparse
+    vim.notify(
+      "Laravel Helper: mega.cmdparse not found. Using legacy commands. " ..
+      "Install ColinKennedy/mega.cmdparse for enhanced command experience.",
+      vim.log.levels.WARN
+    )
+  end
+  
   return M
 end
 
 -- Set up automatic detection of Laravel projects
+---@return nil
 function M.setup_auto_detection()
+  -- Ensure core module is loaded
+  if not M.core then
+    M.core = require("laravel-helper.core")
+  end
+
   -- Initialize state variables if not already initialized
   if not vim.g.laravel_ide_helper_checked then
     vim.g.laravel_ide_helper_checked = {}
@@ -61,22 +111,42 @@ function M.setup_auto_detection()
 end
 
 -- Install IDE Helper in the current project
+---@return boolean success
 function M.install_ide_helper()
+  if not M.core then
+    M.core = require("laravel-helper.core")
+  end
   return M.core.install_ide_helper()
 end
 
 -- Generate IDE Helper files in the current project
+---@param force boolean Force generation even if already exists
+---@param use_sail? boolean Use Laravel Sail instead of PHP
+---@return boolean success
 function M.generate_ide_helper(force, use_sail)
+  if not M.core then
+    M.core = require("laravel-helper.core")
+  end
   return M.core.generate_ide_helper(force, use_sail)
 end
 
 -- Toggle debug mode
+---@return boolean debug_mode Current debug mode state
 function M.toggle_debug_mode()
+  if not M.core then
+    M.core = require("laravel-helper.core")
+  end
   return M.core.toggle_debug_mode()
 end
 
 -- Run an Artisan command with UI prompt
+---@param command? string Artisan command to run
+---@return nil
 function M.run_artisan_command(command)
+  if not M.core then
+    M.core = require("laravel-helper.core")
+  end
+
   if not command then
     -- If no command was provided, prompt the user
     vim.ui.input({
@@ -95,17 +165,31 @@ function M.run_artisan_command(command)
 end
 
 -- Check if this is a Laravel project
+---@return string|nil Laravel root directory or nil
 function M.find_laravel_root()
+  if not M.core then
+    M.core = require("laravel-helper.core")
+  end
   return M.core.find_laravel_root()
 end
 
 -- Use Sail to run a command if available, otherwise use PHP
+---@param cmd string Command to run
+---@return table|nil Command parameters
 function M.with_sail_or_php(cmd)
+  if not M.core then
+    M.core = require("laravel-helper.core")
+  end
   return M.core.with_sail_or_php(cmd)
 end
 
 -- Get the command to run with either Sail or standard PHP
+---@param cmd string Command to run
+---@return string|nil Command string
 function M.get_sail_or_php_command(cmd)
+  if not M.core then
+    M.core = require("laravel-helper.core")
+  end
   local result = M.core.with_sail_or_php(cmd)
   if result then
     return result.command
@@ -116,6 +200,9 @@ end
 -- Forward other calls to core module
 setmetatable(M, {
   __index = function(_, key)
+    if not M.core then
+      M.core = require("laravel-helper.core")
+    end
     return M.core[key]
   end
 })
