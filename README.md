@@ -42,9 +42,9 @@ Projects we aim to integrate with include:
 ### Core Dependencies
 - [nui.nvim](https://github.com/MunifTanjim/nui.nvim) - UI components for improved interface
 
-### Enhanced Command Interface Dependencies
-The following plugins are required for the enhanced command interface with subcommands and automatic help:
-- [mega.cmdparse](https://github.com/ColinKennedy/mega.cmdparse) - Command parsing and interface
+### Recommended Dependencies
+The following plugins provide the enhanced command interface with subcommands and automatic help:
+- [mega.cmdparse](https://github.com/ColinKennedy/mega.cmdparse) - Command parsing and interface (optional but recommended)
 - [mega.logging](https://github.com/ColinKennedy/mega.logging) - Logging utilities (required by mega.cmdparse)
 
 Without these, the plugin will fall back to the legacy command interface.

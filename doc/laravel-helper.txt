@@ -29,11 +29,11 @@ CORE DEPENDENCIES ~
 
 - 'nui.nvim': UI components for improved interface
 
-ENHANCED COMMAND INTERFACE DEPENDENCIES ~
+RECOMMENDED DEPENDENCIES ~
 
-The following plugins are required for enhanced commands with subcommands:
+The following plugins provide enhanced commands with subcommands and help:
 
-- 'mega.cmdparse': Command parsing and interface
+- 'mega.cmdparse': Command parsing and interface (optional but recommended)
 - 'mega.logging': Logging utilities (required by mega.cmdparse)
 
 Without these, the plugin falls back to legacy commands.
@@ -46,9 +46,9 @@ Using lazy.nvim:
 {
   "greggh/laravel-helper.nvim",
   dependencies = {
-    -- Enhanced command interface (optional but recommended)
-    "ColinKennedy/mega.cmdparse", 
-    "ColinKennedy/mega.logging",  -- Required by mega.cmdparse
+    -- Enhanced command interface
+    "ColinKennedy/mega.cmdparse",  -- Optional but recommended
+    "ColinKennedy/mega.logging",   -- Required by mega.cmdparse
     
     -- Core dependencies
     "MunifTanjim/nui.nvim",
