@@ -142,16 +142,18 @@ function M.save_user_preference(laravel_root, key, value)
     "# ",
     "# To change a setting, edit the value or remove the line to reset to default behavior.",
     "# Example: Change 'declined' to 'prompt' to start getting prompts again.",
-    "# "
+    "# ",
   }
 
   -- Convert preferences back to file format
   local lines = {}
 
   -- Only add header if creating a new file or the file doesn't have our header
-  if vim.fn.filereadable(prefs_file) ~= 1 or
-     not vim.fn.readfile(prefs_file, "", 1)[1] or
-     not vim.fn.readfile(prefs_file, "", 1)[1]:match("^# Neovim Helper Configuration") then
+  if
+    vim.fn.filereadable(prefs_file) ~= 1
+    or not vim.fn.readfile(prefs_file, "", 1)[1]
+    or not vim.fn.readfile(prefs_file, "", 1)[1]:match("^# Neovim Helper Configuration")
+  then
     for _, line in ipairs(header) do
       table.insert(lines, line)
     end
@@ -202,8 +204,8 @@ function M.handle_remember_choice(laravel_root, pref_key, pref_value, prompt_tex
     local success, error_msg = M.save_user_preference(laravel_root, pref_key, pref_value)
     if success then
       vim.notify(
-        success_message or 
-        "Preference saved in .nvim-helper. To enable prompts again, change value to 'prompt' or delete the line.",
+        success_message
+          or "Preference saved in .nvim-helper. To enable prompts again, change value to 'prompt' or delete the line.",
         vim.log.levels.INFO,
         { title = "Laravel IDE Helper" }
       )
@@ -248,8 +250,7 @@ function M.is_production_environment()
     for _, line in ipairs(config_content) do
       -- Look for 'env' => 'production' (case insensitive)
       local line_lower = line:lower()
-      if line_lower:match("'env'%s*=>%s*'production'") or
-         line_lower:match('"env"%s*=>%s*"production"') then
+      if line_lower:match("'env'%s*=>%s*'production'") or line_lower:match('"env"%s*=>%s*"production"') then
         return true
       end
     end
@@ -324,7 +325,7 @@ function M.run_job(cmd, cwd, buffer, on_success, on_failure, options)
       "",
       "Waiting for database to initialize...",
       "-------------------------------------------",
-      ""
+      "",
     })
   else
     -- For other commands, show the full details
@@ -373,13 +374,17 @@ function M.run_job(cmd, cwd, buffer, on_success, on_failure, options)
         if detect_laravel_errors then
           for _, line in ipairs(data) do
             if type(line) == "string" then
-              if line:match("could not find driver") or
-                 line:match("database.+connection") or
-                 line:match("SQLSTATE") then
+              if
+                line:match("could not find driver")
+                or line:match("database.+connection")
+                or line:match("SQLSTATE")
+              then
                 db_connection_error = true
-              elseif line:match("Model.+not found") or
-                     line:match("Class.+not found") or
-                     line:match("table.+does not exist") then
+              elseif
+                line:match("Model.+not found")
+                or line:match("Class.+not found")
+                or line:match("table.+does not exist")
+              then
                 model_not_found_error = true
               end
             end
@@ -409,14 +414,18 @@ function M.run_job(cmd, cwd, buffer, on_success, on_failure, options)
         if detect_laravel_errors then
           for _, line in ipairs(data) do
             if type(line) == "string" then
-              if line:match("could not find driver") or
-                 line:match("database.+connection") or
-                 line:match("SQLSTATE") then
+              if
+                line:match("could not find driver")
+                or line:match("database.+connection")
+                or line:match("SQLSTATE")
+              then
                 db_connection_error = true
-              elseif line:match("Model.+not found") or
-                     line:match("Class.+not found") or
-                     line:match("table.+does not exist") or
-                     line:match("ReflectionException") then
+              elseif
+                line:match("Model.+not found")
+                or line:match("Class.+not found")
+                or line:match("table.+does not exist")
+                or line:match("ReflectionException")
+              then
                 model_not_found_error = true
               end
             end
@@ -435,7 +444,7 @@ function M.run_job(cmd, cwd, buffer, on_success, on_failure, options)
           "-------------------------------------------",
           success_prefix .. completion_message,
           "-------------------------------------------",
-          ""
+          "",
         })
 
         job_complete = true
@@ -445,7 +454,7 @@ function M.run_job(cmd, cwd, buffer, on_success, on_failure, options)
           vim.defer_fn(function()
             on_success({
               sail_error_detected = sail_error_detected,
-              docker_error_detected = docker_error_detected
+              docker_error_detected = docker_error_detected,
             })
           end, 100)
         end
@@ -489,12 +498,12 @@ function M.run_job(cmd, cwd, buffer, on_success, on_failure, options)
             on_failure({
               exit_code = code,
               sail_error_detected = sail_error_detected,
-              docker_error_detected = docker_error_detected
+              docker_error_detected = docker_error_detected,
             })
           end, 100)
         end
       end
-    end
+    end,
   })
 
   if job_id <= 0 then
@@ -504,7 +513,7 @@ function M.run_job(cmd, cwd, buffer, on_success, on_failure, options)
       "Failed to start command",
       "Command: " .. cmd,
       "-------------------------------------------",
-      ""
+      "",
     })
 
     job_complete = true
@@ -515,7 +524,7 @@ function M.run_job(cmd, cwd, buffer, on_success, on_failure, options)
       vim.defer_fn(function()
         on_failure({
           exit_code = -1,
-          job_start_failed = true
+          job_start_failed = true,
         })
       end, 100)
     end
@@ -526,7 +535,9 @@ function M.run_job(cmd, cwd, buffer, on_success, on_failure, options)
   -- For synchronous execution, wait for completion if requested
   if options.wait then
     -- Wait for job to complete with timeout
-    local wait_result = vim.wait(timeout, function() return job_complete end, 100)
+    local wait_result = vim.wait(timeout, function()
+      return job_complete
+    end, 100)
 
     if not wait_result then
       log_to_buffer({
@@ -535,13 +546,13 @@ function M.run_job(cmd, cwd, buffer, on_success, on_failure, options)
         "Command timed out after " .. (timeout / 1000) .. " seconds",
         "The operation may still be running in the background",
         "-------------------------------------------",
-        ""
+        "",
       })
 
       if on_failure then
         on_failure({
           exit_code = -2,
-          timed_out = true
+          timed_out = true,
         })
       end
 
@@ -575,7 +586,7 @@ function M.create_default_docker_compose(laravel_root)
     "Setting up Laravel Sail using artisan sail:install...",
     "Working directory: " .. laravel_root,
     "-------------------------------------------",
-    ""
+    "",
   })
 
   -- We already defined log_to_buffer above, no need to redefine it
@@ -607,8 +618,9 @@ function M.create_default_docker_compose(laravel_root)
   -- Check for sail:install command
   log_to_buffer("Checking for sail:install command...")
   -- Make the command more reliable - use full output and more flexible grep
-  local check_command = "cd " .. vim.fn.shellescape(laravel_root) .. 
-    " && php artisan list --all 2>/dev/null | grep -i 'sail\\|install'"
+  local check_command = "cd "
+    .. vim.fn.shellescape(laravel_root)
+    .. " && php artisan list --all 2>/dev/null | grep -i 'sail\\|install'"
   local sail_install_output = vim.fn.system(check_command)
 
   -- Better detection logic
@@ -619,8 +631,9 @@ function M.create_default_docker_compose(laravel_root)
   end
 
   -- Always try to get a direct response about sail:install presence
-  local direct_check = "cd " .. vim.fn.shellescape(laravel_root) .. 
-    " && php artisan help sail:install >/dev/null 2>&1 && echo yes || echo no"
+  local direct_check = "cd "
+    .. vim.fn.shellescape(laravel_root)
+    .. " && php artisan help sail:install >/dev/null 2>&1 && echo yes || echo no"
   local direct_result = vim.fn.system(direct_check):gsub("%s+", "")
   log_to_buffer("Direct check for sail:install command: " .. direct_result)
 
@@ -665,7 +678,9 @@ function M.create_default_docker_compose(laravel_root)
     end)
 
     -- Wait for user to make a choice
-    vim.wait(10000, function() return db_choice ~= nil end, 100)
+    vim.wait(10000, function()
+      return db_choice ~= nil
+    end, 100)
 
     -- Process the user's database choice
     local db_type
@@ -677,8 +692,7 @@ function M.create_default_docker_compose(laravel_root)
       db_type = "mariadb"
     else -- Cancel
       log_to_buffer("User cancelled database selection.")
-      vim.notify("Laravel Sail installation cancelled by user",
-                vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+      vim.notify("Laravel Sail installation cancelled by user", vim.log.levels.INFO, { title = "Laravel IDE Helper" })
       success = nil
       return nil
     end
@@ -701,7 +715,9 @@ function M.create_default_docker_compose(laravel_root)
       end)
 
       -- Wait for user to make a choice
-      vim.wait(10000, function() return service_choice ~= nil end, 100)
+      vim.wait(10000, function()
+        return service_choice ~= nil
+      end, 100)
 
       if service_choice == 1 then -- Yes
         table.insert(services, service_id)
@@ -741,7 +757,7 @@ function M.create_default_docker_compose(laravel_root)
       selected_services_msg,
       "Installing Sail with these options: " .. with_arg,
       "-------------------------------------------",
-      ""
+      "",
     })
 
     -- Create a completion flag for synchronization
@@ -751,23 +767,22 @@ function M.create_default_docker_compose(laravel_root)
     log_to_buffer({
       "",
       "Running sail:install command synchronously - please wait...",
-      "Command: php artisan sail:install --with=" .. with_arg
+      "Command: php artisan sail:install --with=" .. with_arg,
     })
 
     -- Create a buffer-only way to display output from the command
     local function append_install_output(data, is_stderr)
       if data and #data > 0 then
         -- Process string or table of strings
-        local lines = type(data) == "table" and data or {data}
+        local lines = type(data) == "table" and data or { data }
         for _, line in ipairs(lines) do
           if line and line ~= "" then
             -- Check if this is an actual error message
-            local is_real_error = is_stderr and
-                                  line:match("^ERROR:") or
-                                  line:match("^Fatal:") or
-                                  line:match("exception") or
-                                  line:match("failed") or
-                                  line:match("Error:")
+            local is_real_error = is_stderr and line:match("^ERROR:")
+              or line:match("^Fatal:")
+              or line:match("exception")
+              or line:match("failed")
+              or line:match("Error:")
 
             -- Docker output to stderr often isn't an error, just normal status messages
             if is_real_error then
@@ -790,7 +805,7 @@ function M.create_default_docker_compose(laravel_root)
         append_install_output(data, false) -- stdout, not stderr
       end,
       on_stderr = function(_, data)
-        append_install_output(data, true)  -- stderr, might not be an actual error
+        append_install_output(data, true) -- stderr, might not be an actual error
       end,
       on_exit = function(_, code)
         if code == 0 then
@@ -800,7 +815,7 @@ function M.create_default_docker_compose(laravel_root)
             "Laravel Sail installed successfully!",
             "Docker compose file has been created at: " .. laravel_root .. "/docker-compose.yml",
             "-------------------------------------------",
-            ""
+            "",
           })
           install_success = true
         else
@@ -809,18 +824,18 @@ function M.create_default_docker_compose(laravel_root)
             "-------------------------------------------",
             "Failed to install Laravel Sail with exit code: " .. code,
             "-------------------------------------------",
-            ""
+            "",
           })
           install_success = false
         end
         install_complete = true -- Signal command completion
-      end
+      end,
     })
 
     if job_id <= 0 then
       log_to_buffer({
         "Failed to execute artisan sail:install command.",
-        "This could mean PHP is not available or the artisan command is broken."
+        "This could mean PHP is not available or the artisan command is broken.",
       })
       install_complete = true
       install_success = false
@@ -828,7 +843,9 @@ function M.create_default_docker_compose(laravel_root)
 
     -- Wait for the sail:install command to complete
     log_to_buffer("Waiting for sail:install to complete...")
-    local wait_result = vim.wait(360000, function() return install_complete end, 100) -- 6 minute timeout
+    local wait_result = vim.wait(360000, function()
+      return install_complete
+    end, 100) -- 6 minute timeout
 
     if not wait_result then
       log_to_buffer({
@@ -836,7 +853,7 @@ function M.create_default_docker_compose(laravel_root)
         "-------------------------------------------",
         "ERROR: sail:install command timed out after 6 minutes!",
         "-------------------------------------------",
-        ""
+        "",
       })
       install_success = false
     end
@@ -856,7 +873,7 @@ function M.create_default_docker_compose(laravel_root)
           "-------------------------------------------",
           "Starting Laravel Sail with the new configuration...",
           "-------------------------------------------",
-          ""
+          "",
         })
 
         -- Reset the completion flags for Sail startup
@@ -872,7 +889,7 @@ function M.create_default_docker_compose(laravel_root)
             append_install_output(data, false) -- stdout, not stderr
           end,
           on_stderr = function(_, data)
-            append_install_output(data, true)  -- stderr, might not be an actual error
+            append_install_output(data, true) -- stderr, might not be an actual error
           end,
           on_exit = function(_, code)
             if code == 0 then
@@ -882,7 +899,7 @@ function M.create_default_docker_compose(laravel_root)
                 "Laravel Sail started successfully!",
                 "Now proceeding with IDE Helper installation using Sail.",
                 "-------------------------------------------",
-                ""
+                "",
               })
               install_success = true
             else
@@ -891,18 +908,18 @@ function M.create_default_docker_compose(laravel_root)
                 "-------------------------------------------",
                 "Failed to start Laravel Sail with exit code: " .. code,
                 "-------------------------------------------",
-                ""
+                "",
               })
               install_success = false
             end
             install_complete = true -- Signal command completion
-          end
+          end,
         })
 
         if sail_job_id <= 0 then
           log_to_buffer({
             "Failed to execute sail up command.",
-            "This could mean the sail script is not executable."
+            "This could mean the sail script is not executable.",
           })
           install_complete = true
           install_success = false
@@ -910,7 +927,9 @@ function M.create_default_docker_compose(laravel_root)
 
         -- Wait for the sail startup command to complete
         log_to_buffer("Waiting for Sail to start...")
-        local sail_wait_result = vim.wait(360000, function() return install_complete end, 100) -- 6 minute timeout for sail startup
+        local sail_wait_result = vim.wait(360000, function()
+          return install_complete
+        end, 100) -- 6 minute timeout for sail startup
 
         if not sail_wait_result then
           log_to_buffer({
@@ -918,7 +937,7 @@ function M.create_default_docker_compose(laravel_root)
             "-------------------------------------------",
             "ERROR: Sail startup timed out after 6 minutes!",
             "-------------------------------------------",
-            ""
+            "",
           })
           install_success = false
         end
@@ -937,8 +956,11 @@ function M.create_default_docker_compose(laravel_root)
           vim.g.laravel_ide_helper_asked_about_sail = true -- Flag as already prompted about saving
 
           if M.debug_mode then
-            vim.notify("DEBUG: Docker compose created successfully, now using Sail",
-                      vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+            vim.notify(
+              "DEBUG: Docker compose created successfully, now using Sail",
+              vim.log.levels.DEBUG,
+              { title = "Laravel IDE Helper" }
+            )
           end
 
           log_to_buffer("Waiting 5 seconds for Docker containers to fully initialize...")
@@ -961,13 +983,15 @@ function M.create_default_docker_compose(laravel_root)
           end)
 
           -- Wait for user choice
-          vim.wait(10000, function() return choice ~= nil end, 100)
+          vim.wait(10000, function()
+            return choice ~= nil
+          end, 100)
 
           if choice == 1 then -- Continue with standard PHP
             log_to_buffer({
               "",
               "User chose to continue with standard PHP.",
-              ""
+              "",
             })
 
             -- IMPORTANT: Set flags to indicate we've made a choice to use standard PHP
@@ -976,8 +1000,11 @@ function M.create_default_docker_compose(laravel_root)
             vim.g.laravel_ide_helper_asked_about_sail = true -- Flag as already prompted
 
             if M.debug_mode then
-              vim.notify("DEBUG: Using standard PHP after Sail startup failure",
-                        vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+              vim.notify(
+                "DEBUG: Using standard PHP after Sail startup failure",
+                vim.log.levels.DEBUG,
+                { title = "Laravel IDE Helper" }
+              )
             end
 
             success = false -- This will trigger fallback to standard PHP
@@ -985,10 +1012,13 @@ function M.create_default_docker_compose(laravel_root)
             log_to_buffer({
               "",
               "User cancelled the IDE Helper installation.",
-              ""
+              "",
             })
-            vim.notify("Laravel IDE Helper installation cancelled by user",
-                      vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+            vim.notify(
+              "Laravel IDE Helper installation cancelled by user",
+              vim.log.levels.INFO,
+              { title = "Laravel IDE Helper" }
+            )
             success = nil -- Special value to indicate cancellation
           end
         end
@@ -1001,8 +1031,11 @@ function M.create_default_docker_compose(laravel_root)
         vim.g.laravel_ide_helper_asked_about_sail = true -- Flag as already prompted
 
         if M.debug_mode then
-          vim.notify("DEBUG: Using standard PHP due to missing docker-compose.yml",
-                    vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+          vim.notify(
+            "DEBUG: Using standard PHP due to missing docker-compose.yml",
+            vim.log.levels.DEBUG,
+            { title = "Laravel IDE Helper" }
+          )
         end
 
         success = false
@@ -1021,13 +1054,15 @@ function M.create_default_docker_compose(laravel_root)
       end)
 
       -- Wait for user choice
-      vim.wait(10000, function() return choice ~= nil end, 100)
+      vim.wait(10000, function()
+        return choice ~= nil
+      end, 100)
 
       if choice == 1 then -- Continue with standard PHP
         log_to_buffer({
           "",
           "User chose to continue with standard PHP.",
-          ""
+          "",
         })
 
         -- IMPORTANT: Set flags to indicate standard PHP preference after Sail installation failure
@@ -1035,8 +1070,11 @@ function M.create_default_docker_compose(laravel_root)
         vim.g.laravel_ide_helper_asked_about_sail = true -- Flag as already prompted
 
         if M.debug_mode then
-          vim.notify("DEBUG: Using standard PHP after Sail installation failure",
-                    vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+          vim.notify(
+            "DEBUG: Using standard PHP after Sail installation failure",
+            vim.log.levels.DEBUG,
+            { title = "Laravel IDE Helper" }
+          )
         end
 
         success = false -- This will trigger fallback to standard PHP
@@ -1044,10 +1082,13 @@ function M.create_default_docker_compose(laravel_root)
         log_to_buffer({
           "",
           "User cancelled the IDE Helper installation.",
-          ""
+          "",
         })
-        vim.notify("Laravel IDE Helper installation cancelled by user",
-                  vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+        vim.notify(
+          "Laravel IDE Helper installation cancelled by user",
+          vim.log.levels.INFO,
+          { title = "Laravel IDE Helper" }
+        )
         success = nil -- Special value to indicate cancellation
       end
     end
@@ -1066,7 +1107,7 @@ function M.create_default_docker_compose(laravel_root)
       "3. The php command might not be available in your PATH",
       "4. The artisan command might be customized or broken in this project",
       "",
-      "We cannot use Sail for IDE Helper installation without this command."
+      "We cannot use Sail for IDE Helper installation without this command.",
     })
 
     -- Ask user how to proceed
@@ -1081,17 +1122,20 @@ function M.create_default_docker_compose(laravel_root)
         log_to_buffer({
           "",
           "User chose to continue with standard PHP.",
-          ""
+          "",
         })
         success = false -- This will trigger fallback to standard PHP
       else -- Cancel
         log_to_buffer({
           "",
           "User cancelled the IDE Helper installation.",
-          ""
+          "",
         })
-        vim.notify("Laravel IDE Helper installation cancelled by user",
-                  vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+        vim.notify(
+          "Laravel IDE Helper installation cancelled by user",
+          vim.log.levels.INFO,
+          { title = "Laravel IDE Helper" }
+        )
         success = nil -- Special value to indicate cancellation
       end
     end)
@@ -1099,19 +1143,27 @@ function M.create_default_docker_compose(laravel_root)
 
   -- Wait for the job to complete (this is synchronous)
   -- Also handle timeout by putting a maximum wait time
-  local wait_result = vim.wait(60000, function() return success ~= nil end, 100) -- 1 minute timeout
+  local wait_result = vim.wait(60000, function()
+    return success ~= nil
+  end, 100) -- 1 minute timeout
 
   if success == nil then
     -- Installation was cancelled by user
     return nil -- Return nil to indicate cancellation
   elseif success then
-    vim.notify("Successfully set up Laravel Sail and created docker-compose.yml",
-              vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "Successfully set up Laravel Sail and created docker-compose.yml",
+      vim.log.levels.INFO,
+      { title = "Laravel IDE Helper" }
+    )
     return true
   else
     -- Failed but user chose to continue with standard PHP
-    vim.notify("Continuing with standard PHP install for Laravel IDE Helper",
-              vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "Continuing with standard PHP install for Laravel IDE Helper",
+      vim.log.levels.INFO,
+      { title = "Laravel IDE Helper" }
+    )
     return false
   end
 end
@@ -1143,9 +1195,16 @@ function M.has_docker_compose()
 
   -- Debug output only if debug mode is enabled
   if M.debug_mode then
-    vim.notify("Checking for docker-compose files: has_yml=" .. tostring(has_yml) ..
-              ", has_yaml=" .. tostring(has_yaml) .. ", path=" .. laravel_root,
-              vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "Checking for docker-compose files: has_yml="
+        .. tostring(has_yml)
+        .. ", has_yaml="
+        .. tostring(has_yaml)
+        .. ", path="
+        .. laravel_root,
+      vim.log.levels.DEBUG,
+      { title = "Laravel IDE Helper" }
+    )
   end
 
   return has_yml or has_yaml
@@ -1174,7 +1233,7 @@ function M.ide_helper_files_exist()
   local files = {
     laravel_root .. "/_ide_helper.php",
     laravel_root .. "/_ide_helper_models.php",
-    laravel_root .. "/.phpstorm.meta.php"
+    laravel_root .. "/.phpstorm.meta.php",
   }
 
   for _, file in ipairs(files) do
@@ -1201,7 +1260,7 @@ M.ide_helper_window = {
     elseif type(message) == "string" then
       vim.notify(message)
     end
-  end
+  end,
 }
 
 -- Creates and shows a floating window for Laravel IDE Helper output
@@ -1218,7 +1277,9 @@ function M.show_ide_helper_window(title)
 
   -- Close existing popup if it exists
   if M.ide_helper_window.popup and M.ide_helper_window.mounted then
-    pcall(function() M.ide_helper_window.popup:unmount() end)
+    pcall(function()
+      M.ide_helper_window.popup:unmount()
+    end)
     M.ide_helper_window.mounted = false
   end
 
@@ -1252,12 +1313,16 @@ function M.show_ide_helper_window(title)
 
   -- Set keymaps to close the popup
   M.ide_helper_window.popup:map("n", "q", function()
-    pcall(function() M.ide_helper_window.popup:unmount() end)
+    pcall(function()
+      M.ide_helper_window.popup:unmount()
+    end)
     M.ide_helper_window.mounted = false
   end, { noremap = true })
 
   M.ide_helper_window.popup:map("n", "<Esc>", function()
-    pcall(function() M.ide_helper_window.popup:unmount() end)
+    pcall(function()
+      M.ide_helper_window.popup:unmount()
+    end)
     M.ide_helper_window.mounted = false
   end, { noremap = true })
 
@@ -1267,17 +1332,13 @@ function M.show_ide_helper_window(title)
 
     -- Set initial content if we have any
     if #M.ide_helper_window.lines > 0 then
-      vim.api.nvim_buf_set_lines(
-        M.ide_helper_window.popup.bufnr,
-        0, -1, false,
-        M.ide_helper_window.lines
-      )
+      vim.api.nvim_buf_set_lines(M.ide_helper_window.popup.bufnr, 0, -1, false, M.ide_helper_window.lines)
 
       -- Auto-scroll to bottom
       vim.schedule(function()
         if M.ide_helper_window.mounted then
           local line_count = vim.api.nvim_buf_line_count(M.ide_helper_window.popup.bufnr)
-          pcall(vim.api.nvim_win_set_cursor, M.ide_helper_window.popup.winid, {line_count, 0})
+          pcall(vim.api.nvim_win_set_cursor, M.ide_helper_window.popup.winid, { line_count, 0 })
         end
       end)
     end
@@ -1295,8 +1356,7 @@ function M.create_buffer_logger(buffer)
 
   -- Return a function that logs to the popup
   return function(message)
-    if not message or (type(message) == "string" and message == "") or
-       (type(message) == "table" and #message == 0) then
+    if not message or (type(message) == "string" and message == "") or (type(message) == "table" and #message == 0) then
       return
     end
 
@@ -1338,7 +1398,9 @@ function M.create_buffer_logger(buffer)
     end
 
     -- Only proceed if we have valid lines to add
-    if #filtered_lines == 0 then return end
+    if #filtered_lines == 0 then
+      return
+    end
 
     -- Add lines to our saved lines (to restore if popup is recreated)
     for _, line in ipairs(filtered_lines) do
@@ -1357,12 +1419,17 @@ function M.create_buffer_logger(buffer)
             pcall(vim.api.nvim_buf_set_lines, bufnr, line_count, line_count, false, filtered_lines)
 
             -- Auto-scroll to bottom
-            local ok2, _ = pcall(vim.api.nvim_win_set_cursor, M.ide_helper_window.popup.winid, {line_count + #filtered_lines, 0})
+            local ok2, _ =
+              pcall(vim.api.nvim_win_set_cursor, M.ide_helper_window.popup.winid, { line_count + #filtered_lines, 0 })
             if not ok2 then
               -- Try once more
               vim.defer_fn(function()
                 if M.ide_helper_window.mounted then
-                  pcall(vim.api.nvim_win_set_cursor, M.ide_helper_window.popup.winid, {line_count + #filtered_lines, 0})
+                  pcall(
+                    vim.api.nvim_win_set_cursor,
+                    M.ide_helper_window.popup.winid,
+                    { line_count + #filtered_lines, 0 }
+                  )
                 end
               end, 10)
             end
@@ -1384,12 +1451,18 @@ end
 -- Toggle debug mode for Laravel IDE Helper
 function M.toggle_debug_mode()
   M.debug_mode = not M.debug_mode
-  vim.notify("Laravel IDE Helper debug mode: " .. (M.debug_mode and "ENABLED" or "DISABLED"),
-            vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+  vim.notify(
+    "Laravel IDE Helper debug mode: " .. (M.debug_mode and "ENABLED" or "DISABLED"),
+    vim.log.levels.INFO,
+    { title = "Laravel IDE Helper" }
+  )
 
   if M.debug_mode then
-    vim.notify("Debug mode will show detailed notifications about Laravel IDE Helper operations.",
-              vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "Debug mode will show detailed notifications about Laravel IDE Helper operations.",
+      vim.log.levels.INFO,
+      { title = "Laravel IDE Helper" }
+    )
   end
 
   return M.debug_mode
@@ -1438,7 +1511,7 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
       log_to_buffer({
         "",
         "Skipping database migration due to previous connection failure.",
-        ""
+        "",
       })
       return get_next_command() -- Recursively get the next valid command
     end
@@ -1456,12 +1529,15 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
           "",
           "-------------------------------------------",
           "All Laravel IDE Helper files generated successfully!",
-          "Restarting PHP LSP server..."
+          "Restarting PHP LSP server...",
         })
 
         -- Final success notification is still useful
-        vim.notify("Laravel IDE Helper files generated successfully",
-                 vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+        vim.notify(
+          "Laravel IDE Helper files generated successfully",
+          vim.log.levels.INFO,
+          { title = "Laravel IDE Helper" }
+        )
 
         -- Reload LSP for the current buffer to pick up the new definitions
         vim.schedule(function()
@@ -1484,7 +1560,7 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
                 "All files have been generated and the LSP server has been restarted.",
                 "You may now close this buffer manually when you're done reviewing the output.",
                 "-------------------------------------------",
-                ""
+                "",
               })
             end
           end, 2000) -- 2 second delay to allow LSP to restart fully
@@ -1494,11 +1570,14 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
           "",
           "-------------------------------------------",
           "Some IDE Helper commands failed. Check the logs above for details.",
-          "You may need to run the commands manually in your Laravel project directory."
+          "You may need to run the commands manually in your Laravel project directory.",
         })
 
-        vim.notify("Some Laravel IDE Helper commands failed. See buffer for details.",
-                  vim.log.levels.WARN, { title = "Laravel IDE Helper" })
+        vim.notify(
+          "Some Laravel IDE Helper commands failed. See buffer for details.",
+          vim.log.levels.WARN,
+          { title = "Laravel IDE Helper" }
+        )
       end
 
       -- Clean up global state when finished
@@ -1510,7 +1589,7 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
 
     log_to_buffer({
       "",
-      "Running: " .. cmd
+      "Running: " .. cmd,
     })
 
     local job_id = vim.fn.jobstart(cmd, {
@@ -1522,18 +1601,22 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
           -- Check for Laravel-specific errors in the output
           for _, line in ipairs(data) do
             if type(line) == "string" then
-              if line:match("could not find driver") or
-                line:match("database.+connection") or
-                line:match("SQLSTATE") then
+              if
+                line:match("could not find driver")
+                or line:match("database.+connection")
+                or line:match("SQLSTATE")
+              then
                 -- Detected database connection issue
                 M.last_db_connection_failed = true
                 log_to_buffer({
                   "DATABASE CONNECTION ERROR DETECTED: This might be because the database is not ready or properly configured.",
                   "Consider running 'php artisan migrate' manually if this is a fresh Laravel project.",
                 })
-              elseif line:match("Model.+not found") or
-                    line:match("Class.+not found") or
-                    line:match("table.+does not exist") then
+              elseif
+                line:match("Model.+not found")
+                or line:match("Class.+not found")
+                or line:match("table.+does not exist")
+              then
                 -- Detected schema/model issue
                 log_to_buffer({
                   "MODEL/SCHEMA ERROR DETECTED: This might be because database tables are not properly set up.",
@@ -1554,10 +1637,10 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
       end,
       on_exit = function(_, code)
         -- Check if this is a DB-related command which can fail but we should continue
-        local is_db_command = cmd:match("artisan migrate") or
-                             cmd:match("artisan db:seed") or
-                             cmd:match("artisan tinker") or
-                             cmd:match("sleep [0-9]+")
+        local is_db_command = cmd:match("artisan migrate")
+          or cmd:match("artisan db:seed")
+          or cmd:match("artisan tinker")
+          or cmd:match("sleep [0-9]+")
 
         if code ~= 0 then
           -- Only mark as failure if it's not a database command
@@ -1574,7 +1657,7 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
                 "Database connection failed. Database may still be initializing or credentials may be incorrect.",
                 "Will skip migration and continue with IDE Helper generation.",
                 "Some model information may be incomplete without database connection.",
-                "-------------------------------------------"
+                "-------------------------------------------",
               })
             elseif cmd:match("artisan migrate") then
               -- Record that database setup failed
@@ -1584,19 +1667,19 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
                 "Database migration failed with code: " .. code,
                 "This is non-critical, continuing with IDE Helper generation...",
                 "Note: Some IDE helper model information may be incomplete without migrated tables.",
-                "-------------------------------------------"
+                "-------------------------------------------",
               })
             else
               log_to_buffer({
                 "Database command exited with code: " .. code,
                 "This is non-critical, continuing with IDE Helper generation...",
-                "-------------------------------------------"
+                "-------------------------------------------",
               })
             end
           else
             log_to_buffer({
               "Command failed with exit code: " .. code,
-              "-------------------------------------------"
+              "-------------------------------------------",
             })
           end
         else
@@ -1605,19 +1688,19 @@ function M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer
             -- If we had a previous DB connection failure, the models command may not have worked fully
             log_to_buffer({
               "Command completed, but database connection issues may have limited the results.",
-              "-------------------------------------------"
+              "-------------------------------------------",
             })
           else
             log_to_buffer({
               "Command completed successfully",
-              "-------------------------------------------"
+              "-------------------------------------------",
             })
           end
         end
 
         -- Move to next command
         run_next_command()
-      end
+      end,
     })
 
     if job_id <= 0 then
@@ -1659,20 +1742,20 @@ function M.install_ide_helper()
   -- Check if this is a production environment and warn the user
   if M.is_production_environment() then
     vim.notify(
-      "⚠️ WARNING: This appears to be a production Laravel environment. ⚠️\n" ..
-      "Installing IDE Helper in production is not recommended.\n" ..
-      "Please check your .env file or config/app.php.",
+      "⚠️ WARNING: This appears to be a production Laravel environment. ⚠️\n"
+        .. "Installing IDE Helper in production is not recommended.\n"
+        .. "Please check your .env file or config/app.php.",
       vim.log.levels.ERROR,
       {
         title = "Laravel IDE Helper - PRODUCTION ENVIRONMENT DETECTED",
-        timeout = 10000  -- 10 seconds (twice the default 5000ms)
+        timeout = 10000, -- 10 seconds (twice the default 5000ms)
       }
     )
 
     -- Ask for confirmation before proceeding
     local choice = vim.fn.confirm(
-      "This appears to be a production Laravel environment. IDE Helper should NOT be used in production.\n" ..
-      "Are you absolutely sure you want to continue?",
+      "This appears to be a production Laravel environment. IDE Helper should NOT be used in production.\n"
+        .. "Are you absolutely sure you want to continue?",
       "&Cancel\n&I understand the risks, proceed anyway",
       1 -- Default to Cancel
     )
@@ -1684,20 +1767,23 @@ function M.install_ide_helper()
 
     -- If they confirm, show one more strong warning
     vim.notify(
-      "⚠️ Proceeding with IDE Helper in PRODUCTION environment at user's request! ⚠️\n" ..
-      "This is NOT recommended and could potentially modify production data.",
+      "⚠️ Proceeding with IDE Helper in PRODUCTION environment at user's request! ⚠️\n"
+        .. "This is NOT recommended and could potentially modify production data.",
       vim.log.levels.WARN,
       {
         title = "Laravel IDE Helper - PROCEEDING IN PRODUCTION",
-        timeout = 10000  -- 10 seconds (twice the default 5000ms)
+        timeout = 10000, -- 10 seconds (twice the default 5000ms)
       }
     )
   end
 
   -- Check user preference for standard PHP first
   if M.prefer_standard_php(laravel_root) then
-    vim.notify("Using standard PHP/composer (as per saved preference).",
-              vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "Using standard PHP/composer (as per saved preference).",
+      vim.log.levels.INFO,
+      { title = "Laravel IDE Helper" }
+    )
 
     -- Set up the floating window first
     M.show_ide_helper_window("Laravel IDE Helper Install")
@@ -1711,8 +1797,11 @@ function M.install_ide_helper()
 
   -- If Sail is available but Docker isn't, we should fall back to standard composer
   if use_sail and not is_docker_available then
-    vim.notify("Laravel Sail is available, but Docker is not installed or not running. Using standard composer.",
-              vim.log.levels.WARN, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "Laravel Sail is available, but Docker is not installed or not running. Using standard composer.",
+      vim.log.levels.WARN,
+      { title = "Laravel IDE Helper" }
+    )
     use_sail = false
   end
 
@@ -1721,19 +1810,25 @@ function M.install_ide_helper()
 
   -- Debug output only if debug mode is enabled
   if M.debug_mode then
-    vim.notify("Checking docker-compose - use_sail=" .. tostring(use_sail) ..
-              ", has_docker_compose=" .. tostring(has_docker_compose) ..
-              ", global preference=" .. tostring(vim.g.laravel_ide_helper_use_sail) ..
-              ", asked flag=" .. tostring(vim.g.laravel_ide_helper_asked_about_sail),
-              vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "Checking docker-compose - use_sail="
+        .. tostring(use_sail)
+        .. ", has_docker_compose="
+        .. tostring(has_docker_compose)
+        .. ", global preference="
+        .. tostring(vim.g.laravel_ide_helper_use_sail)
+        .. ", asked flag="
+        .. tostring(vim.g.laravel_ide_helper_asked_about_sail),
+      vim.log.levels.DEBUG,
+      { title = "Laravel IDE Helper" }
+    )
   end
 
   -- Special case: Sail is installed but docker-compose.yml is missing
   if use_sail and not has_docker_compose then
     -- Debug output only if debug mode is enabled
     if M.debug_mode then
-      vim.notify("Docker compose is missing, asking what to do",
-                vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+      vim.notify("Docker compose is missing, asking what to do", vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
     end
 
     -- First ask about docker-compose
@@ -1772,8 +1867,11 @@ function M.install_ide_helper()
 
       local result = M.create_default_docker_compose(laravel_root)
       if result == true then
-        vim.notify("Created docker-compose.yml, now continuing with Sail...",
-                  vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+        vim.notify(
+          "Created docker-compose.yml, now continuing with Sail...",
+          vim.log.levels.INFO,
+          { title = "Laravel IDE Helper" }
+        )
         use_sail = true
         has_docker_compose = true
       else
@@ -1803,8 +1901,11 @@ function M.install_ide_helper()
       vim.g.laravel_ide_helper_asked_about_sail = true
       use_sail = false
     else -- Cancel (choice == 3 or any other value)
-      vim.notify("Laravel IDE Helper installation cancelled by user",
-                vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+      vim.notify(
+        "Laravel IDE Helper installation cancelled by user",
+        vim.log.levels.INFO,
+        { title = "Laravel IDE Helper" }
+      )
       vim.g.laravel_ide_helper_installing = false
       return false
     end
@@ -1820,8 +1921,11 @@ function M.install_ide_helper()
 
     if choice == 1 then -- Start Sail first
       if not has_docker_compose then
-        vim.notify("Docker Compose file not found. Using standard PHP instead.",
-                  vim.log.levels.WARN, { title = "Laravel IDE Helper" })
+        vim.notify(
+          "Docker Compose file not found. Using standard PHP instead.",
+          vim.log.levels.WARN,
+          { title = "Laravel IDE Helper" }
+        )
         use_sail = false
       else
         vim.notify("Starting Laravel Sail...", vim.log.levels.INFO, { title = "Laravel IDE Helper" })
@@ -1836,7 +1940,7 @@ function M.install_ide_helper()
           "Command: " .. M.get_sail_up_cmd(),
           "Working directory: " .. laravel_root,
           "-------------------------------------------",
-          ""
+          "",
         })
 
         -- Start Sail with more verbose output and orphan container cleanup
@@ -1861,11 +1965,14 @@ function M.install_ide_helper()
                 "",
                 "-------------------------------------------",
                 "Laravel Sail started successfully!",
-                "Installing IDE Helper with Sail..."
+                "Installing IDE Helper with Sail...",
               })
 
-              vim.notify("Laravel Sail started successfully. Installing IDE Helper...",
-                        vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+              vim.notify(
+                "Laravel Sail started successfully. Installing IDE Helper...",
+                vim.log.levels.INFO,
+                { title = "Laravel IDE Helper" }
+              )
 
               -- Wait a bit for Docker to fully initialize
               vim.defer_fn(function()
@@ -1883,18 +1990,21 @@ function M.install_ide_helper()
                 "2. There might be port conflicts with existing services",
                 "3. Docker compose might have configuration errors",
                 "",
-                "Falling back to standard composer..."
+                "Falling back to standard composer...",
               })
 
-              vim.notify("Failed to start Laravel Sail. Using standard composer instead.",
-                        vim.log.levels.WARN, { title = "Laravel IDE Helper" })
+              vim.notify(
+                "Failed to start Laravel Sail. Using standard composer instead.",
+                vim.log.levels.WARN,
+                { title = "Laravel IDE Helper" }
+              )
 
               -- Fall back to standard composer
               vim.defer_fn(function()
                 M.install_ide_helper_with_command(laravel_root, false, nil)
               end, 1000)
             end
-          end
+          end,
         })
 
         if sail_job_id <= 0 then
@@ -1903,11 +2013,14 @@ function M.install_ide_helper()
             "-------------------------------------------",
             "Failed to execute Sail command.",
             "Check if ./vendor/bin/sail is executable.",
-            "Falling back to standard composer..."
+            "Falling back to standard composer...",
           })
 
-          vim.notify("Failed to execute Sail command. Using standard composer instead.",
-                    vim.log.levels.WARN, { title = "Laravel IDE Helper" })
+          vim.notify(
+            "Failed to execute Sail command. Using standard composer instead.",
+            vim.log.levels.WARN,
+            { title = "Laravel IDE Helper" }
+          )
 
           vim.defer_fn(function()
             M.install_ide_helper_with_command(laravel_root, false, nil)
@@ -1920,8 +2033,11 @@ function M.install_ide_helper()
     elseif choice == 2 then -- Use standard composer
       use_sail = false
     else -- Cancel
-      vim.notify("Laravel IDE Helper installation cancelled by user",
-                vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+      vim.notify(
+        "Laravel IDE Helper installation cancelled by user",
+        vim.log.levels.INFO,
+        { title = "Laravel IDE Helper" }
+      )
       vim.g.laravel_ide_helper_installing = false
       return false
     end
@@ -1933,8 +2049,9 @@ function M.install_ide_helper()
   -- Final command construction - by this point, use_sail should reflect user choice
   local cmd
   if use_sail then
-    cmd = "cd " .. vim.fn.shellescape(laravel_root) .. 
-      " && ./vendor/bin/sail composer require --dev barryvdh/laravel-ide-helper"
+    cmd = "cd "
+      .. vim.fn.shellescape(laravel_root)
+      .. " && ./vendor/bin/sail composer require --dev barryvdh/laravel-ide-helper"
   else
     cmd = "cd " .. vim.fn.shellescape(laravel_root) .. " && composer require --dev barryvdh/laravel-ide-helper"
   end
@@ -1949,7 +2066,7 @@ function M.install_ide_helper()
     use_sail and "Using Laravel Sail" or "Using standard PHP",
     "-------------------------------------------",
     "",
-    "Running: " .. cmd
+    "Running: " .. cmd,
   })
 
   -- Run the command to install IDE Helper
@@ -1971,19 +2088,15 @@ function M.install_ide_helper()
           "-------------------------------------------",
           "Laravel IDE Helper installed successfully!",
           "-------------------------------------------",
-          ""
+          "",
         })
 
-        vim.notify("Laravel IDE Helper installed successfully!", vim.log.levels.INFO,
-                 { title = "Laravel IDE Helper" })
+        vim.notify("Laravel IDE Helper installed successfully!", vim.log.levels.INFO, { title = "Laravel IDE Helper" })
 
         -- Ask if they want to generate IDE helper files now
         vim.schedule(function()
-          local generate_now = vim.fn.confirm(
-            "Laravel IDE Helper installed successfully! Generate helper files now?",
-            "&Yes\n&No",
-            1
-          )
+          local generate_now =
+            vim.fn.confirm("Laravel IDE Helper installed successfully! Generate helper files now?", "&Yes\n&No", 1)
 
           if generate_now == 1 then
             -- We're still in the installation process while generating files
@@ -1997,8 +2110,11 @@ function M.install_ide_helper()
             vim.g.laravel_ide_helper_asked_about_sail = true
 
             if M.debug_mode then
-              vim.notify("DEBUG: Preserving Sail preference: " .. tostring(use_sail),
-                        vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+              vim.notify(
+                "DEBUG: Preserving Sail preference: " .. tostring(use_sail),
+                vim.log.levels.DEBUG,
+                { title = "Laravel IDE Helper" }
+              )
             end
 
             -- Pass the sail preference to the generation function to ensure consistency
@@ -2011,16 +2127,19 @@ function M.install_ide_helper()
           "-------------------------------------------",
           "INSTALLATION FAILED with exit code: " .. code,
           "-------------------------------------------",
-          ""
+          "",
         })
 
-        vim.notify("Failed to install Laravel IDE Helper (exit code: " .. code .. ")",
-                 vim.log.levels.ERROR, { title = "Laravel IDE Helper" })
+        vim.notify(
+          "Failed to install Laravel IDE Helper (exit code: " .. code .. ")",
+          vim.log.levels.ERROR,
+          { title = "Laravel IDE Helper" }
+        )
 
         -- Clear the installing flag since we're done (with failure)
         vim.g.laravel_ide_helper_installing = false
       end
-    end
+    end,
   })
 
   if job_id <= 0 then
@@ -2029,7 +2148,7 @@ function M.install_ide_helper()
       "-------------------------------------------",
       "Failed to start installation command",
       "-------------------------------------------",
-      ""
+      "",
     })
 
     vim.notify("Failed to start installation command", vim.log.levels.ERROR)
@@ -2042,7 +2161,10 @@ end
 -- Generate IDE Helper files
 function M.generate_ide_helper(force, use_sail_override)
   if M.debug_mode then
-    vim.notify("Starting IDE Helper generation with use_sail_override=" .. tostring(use_sail_override), vim.log.levels.DEBUG)
+    vim.notify(
+      "Starting IDE Helper generation with use_sail_override=" .. tostring(use_sail_override),
+      vim.log.levels.DEBUG
+    )
   end
 
   local laravel_root = M.find_laravel_root()
@@ -2067,20 +2189,20 @@ function M.generate_ide_helper(force, use_sail_override)
   -- Check if this is a production environment and warn the user
   if M.is_production_environment() then
     vim.notify(
-      "⚠️ WARNING: This appears to be a production Laravel environment. ⚠️\n" ..
-      "Generating IDE Helper files in production is not recommended.\n" ..
-      "Please check your .env file or config/app.php.",
+      "⚠️ WARNING: This appears to be a production Laravel environment. ⚠️\n"
+        .. "Generating IDE Helper files in production is not recommended.\n"
+        .. "Please check your .env file or config/app.php.",
       vim.log.levels.ERROR,
       {
         title = "Laravel IDE Helper - PRODUCTION ENVIRONMENT DETECTED",
-        timeout = 10000  -- 10 seconds (twice the default 5000ms)
+        timeout = 10000, -- 10 seconds (twice the default 5000ms)
       }
     )
 
     -- Ask for confirmation before proceeding
     local choice = vim.fn.confirm(
-      "This appears to be a production Laravel environment. IDE Helper should NOT be used in production.\n" ..
-      "Are you absolutely sure you want to continue?",
+      "This appears to be a production Laravel environment. IDE Helper should NOT be used in production.\n"
+        .. "Are you absolutely sure you want to continue?",
       "&Cancel\n&I understand the risks, proceed anyway",
       1 -- Default to Cancel
     )
@@ -2092,33 +2214,36 @@ function M.generate_ide_helper(force, use_sail_override)
 
     -- If they confirm, show one more strong warning
     vim.notify(
-      "⚠️ Proceeding with IDE Helper in PRODUCTION environment at user's request! ⚠️\n" ..
-      "This is NOT recommended and could potentially modify production data.",
+      "⚠️ Proceeding with IDE Helper in PRODUCTION environment at user's request! ⚠️\n"
+        .. "This is NOT recommended and could potentially modify production data.",
       vim.log.levels.WARN,
       {
         title = "Laravel IDE Helper - PROCEEDING IN PRODUCTION",
-        timeout = 10000  -- 10 seconds (twice the default 5000ms)
+        timeout = 10000, -- 10 seconds (twice the default 5000ms)
       }
     )
   end
 
   if not force and M.ide_helper_files_exist() then
-    vim.notify("IDE Helper files already exist. Use force=true to regenerate.",
-             vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "IDE Helper files already exist. Use force=true to regenerate.",
+      vim.log.levels.INFO,
+      { title = "Laravel IDE Helper" }
+    )
     return true
   end
 
   if not M.has_ide_helper() then
-    vim.notify("Laravel IDE Helper is not installed. Please install it first.",
-             vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "Laravel IDE Helper is not installed. Please install it first.",
+      vim.log.levels.INFO,
+      { title = "Laravel IDE Helper" }
+    )
 
     -- Ask if they want to install it
     vim.schedule(function()
-      local install_now = vim.fn.confirm(
-        "Laravel IDE Helper is not installed. Would you like to install it now?",
-        "&Yes\n&No",
-        1
-      )
+      local install_now =
+        vim.fn.confirm("Laravel IDE Helper is not installed. Would you like to install it now?", "&Yes\n&No", 1)
 
       if install_now == 1 then
         M.install_ide_helper()
@@ -2138,22 +2263,31 @@ function M.generate_ide_helper(force, use_sail_override)
   if use_sail_override ~= nil then
     use_sail = use_sail_override
     if M.debug_mode then
-      vim.notify("Using " .. (use_sail and "Laravel Sail" or "standard PHP") .. " as specified by parameter.",
-                vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+      vim.notify(
+        "Using " .. (use_sail and "Laravel Sail" or "standard PHP") .. " as specified by parameter.",
+        vim.log.levels.DEBUG,
+        { title = "Laravel IDE Helper" }
+      )
     end
   -- Otherwise check if we have a global preference from earlier in the session
   elseif vim.g.laravel_ide_helper_use_sail ~= nil then
     use_sail = vim.g.laravel_ide_helper_use_sail
     if M.debug_mode then
-      vim.notify("Using " .. (use_sail and "Laravel Sail" or "standard PHP") .. " from global state.",
-                vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+      vim.notify(
+        "Using " .. (use_sail and "Laravel Sail" or "standard PHP") .. " from global state.",
+        vim.log.levels.DEBUG,
+        { title = "Laravel IDE Helper" }
+      )
     end
   -- Default fallback to automatic detection
   else
     use_sail = M.has_sail() and not M.prefer_standard_php(laravel_root)
     if M.debug_mode then
-      vim.notify("Auto-detected use_sail=" .. tostring(use_sail),
-                vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+      vim.notify(
+        "Auto-detected use_sail=" .. tostring(use_sail),
+        vim.log.levels.DEBUG,
+        { title = "Laravel IDE Helper" }
+      )
     end
   end
 
@@ -2184,7 +2318,7 @@ function M.generate_ide_helper(force, use_sail_override)
     -- Add IDE helper commands with Sail prefix
     table.insert(commands, "./vendor/bin/sail php artisan ide-helper:generate --quiet") -- Generates basic PHPDoc with minimal output
     table.insert(commands, "./vendor/bin/sail php artisan ide-helper:models -N --quiet") -- Generates PHPDocs for models with minimal output
-    table.insert(commands, "./vendor/bin/sail php artisan ide-helper:meta --quiet")  -- Generates PhpStorm meta file with minimal output
+    table.insert(commands, "./vendor/bin/sail php artisan ide-helper:meta --quiet") -- Generates PhpStorm meta file with minimal output
   else
     -- Not using Sail, use standard PHP versions
 
@@ -2204,7 +2338,7 @@ function M.generate_ide_helper(force, use_sail_override)
     -- Add standard PHP IDE helper commands
     table.insert(commands, "php artisan ide-helper:generate --quiet") -- Generates basic PHPDoc with minimal output
     table.insert(commands, "php artisan ide-helper:models -N --quiet") -- Generates PHPDocs for models with minimal output
-    table.insert(commands, "php artisan ide-helper:meta --quiet")  -- Generates PhpStorm meta file with minimal output
+    table.insert(commands, "php artisan ide-helper:meta --quiet") -- Generates PhpStorm meta file with minimal output
   end
 
   -- Construct full commands with proper cwd
@@ -2225,8 +2359,11 @@ function M.generate_ide_helper(force, use_sail_override)
   })
 
   -- Only one notification at the beginning
-  vim.notify("Generating Laravel IDE Helper files. See buffer for progress.",
-            vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+  vim.notify(
+    "Generating Laravel IDE Helper files. See buffer for progress.",
+    vim.log.levels.INFO,
+    { title = "Laravel IDE Helper" }
+  )
 
   -- Execute commands
   M.execute_commands_for_ide_helper(commands, laravel_root, log_to_buffer)
@@ -2238,19 +2375,26 @@ end
 function M.install_ide_helper_with_command(laravel_root, use_sail, existing_bufnr)
   -- Log debug information
   if M.debug_mode then
-    vim.notify("install_ide_helper_with_command called with use_sail=" .. tostring(use_sail) ..
-              ", global pref=" .. tostring(vim.g.laravel_ide_helper_use_sail),
-              vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "install_ide_helper_with_command called with use_sail="
+        .. tostring(use_sail)
+        .. ", global pref="
+        .. tostring(vim.g.laravel_ide_helper_use_sail),
+      vim.log.levels.DEBUG,
+      { title = "Laravel IDE Helper" }
+    )
   end
 
-  local cmd = use_sail
-    and "./vendor/bin/sail composer require --dev barryvdh/laravel-ide-helper"
+  local cmd = use_sail and "./vendor/bin/sail composer require --dev barryvdh/laravel-ide-helper"
     or "composer require --dev barryvdh/laravel-ide-helper"
 
   -- Check if Sail is accessible if we're supposed to use it
   if use_sail and vim.fn.executable(laravel_root .. "/vendor/bin/sail") ~= 1 then
-    vim.notify("Sail executable not found or not executable. Using standard composer.",
-              vim.log.levels.WARN, { title = "Laravel IDE Helper" })
+    vim.notify(
+      "Sail executable not found or not executable. Using standard composer.",
+      vim.log.levels.WARN,
+      { title = "Laravel IDE Helper" }
+    )
 
     -- Fall back to standard composer
     cmd = "composer require --dev barryvdh/laravel-ide-helper"
@@ -2260,8 +2404,11 @@ function M.install_ide_helper_with_command(laravel_root, use_sail, existing_bufn
     vim.g.laravel_ide_helper_use_sail = false
   end
 
-  vim.notify("Installing Laravel IDE Helper..." .. (use_sail and " (using Sail)" or ""),
-            vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+  vim.notify(
+    "Installing Laravel IDE Helper..." .. (use_sail and " (using Sail)" or ""),
+    vim.log.levels.INFO,
+    { title = "Laravel IDE Helper" }
+  )
 
   -- We'll just use the nui.nvim popup for all output
   local log_to_buffer = M.create_buffer_logger()
@@ -2279,7 +2426,7 @@ function M.install_ide_helper_with_command(laravel_root, use_sail, existing_bufn
 
   -- Actually run the command
   local job_id = vim.fn.jobstart(cmd, {
-    cwd = laravel_root,  -- Use the Laravel root directory
+    cwd = laravel_root, -- Use the Laravel root directory
     stdout_buffered = false,
     stderr_buffered = false,
     on_stdout = function(_, data)
@@ -2298,11 +2445,10 @@ function M.install_ide_helper_with_command(laravel_root, use_sail, existing_bufn
           "",
           "-------------------------------------------",
           "Laravel IDE Helper installed successfully!",
-          "Generating IDE helper files..."
+          "Generating IDE helper files...",
         })
 
-        vim.notify("Laravel IDE Helper installed successfully",
-                  vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+        vim.notify("Laravel IDE Helper installed successfully", vim.log.levels.INFO, { title = "Laravel IDE Helper" })
 
         -- Generate IDE helper files automatically after install
         vim.defer_fn(function()
@@ -2317,8 +2463,11 @@ function M.install_ide_helper_with_command(laravel_root, use_sail, existing_bufn
           vim.g.laravel_ide_helper_asked_about_sail = true
 
           if M.debug_mode then
-            vim.notify("DEBUG: Preserving Sail preference: " .. tostring(use_sail),
-                      vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+            vim.notify(
+              "DEBUG: Preserving Sail preference: " .. tostring(use_sail),
+              vim.log.levels.DEBUG,
+              { title = "Laravel IDE Helper" }
+            )
           end
 
           -- Pass true for force, our sail preference, and buffer ID
@@ -2334,22 +2483,25 @@ function M.install_ide_helper_with_command(laravel_root, use_sail, existing_bufn
           "1. Try running the command manually in your Laravel project directory:",
           "   " .. cmd,
           "2. Check if " .. (use_sail and "Docker/Sail" or "Composer") .. " is properly installed",
-          "3. Check network connectivity for package downloads"
+          "3. Check network connectivity for package downloads",
         })
 
         -- Clear the installing flag since we're done (with failure)
         vim.g.laravel_ide_helper_installing = false
 
-        vim.notify("Failed to install Laravel IDE Helper (exit code: " .. code .. ")",
-                 vim.log.levels.ERROR, { title = "Laravel IDE Helper" })
+        vim.notify(
+          "Failed to install Laravel IDE Helper (exit code: " .. code .. ")",
+          vim.log.levels.ERROR,
+          { title = "Laravel IDE Helper" }
+        )
       end
-    end
+    end,
   })
 
   if job_id <= 0 then
     log_to_buffer({
       "Failed to start installation command.",
-      "This could mean " .. (use_sail and "Sail" or "Composer") .. " is not accessible."
+      "This could mean " .. (use_sail and "Sail" or "Composer") .. " is not accessible.",
     })
 
     vim.notify("Failed to start installation command", vim.log.levels.ERROR)
@@ -2440,13 +2592,13 @@ function M.check_laravel_project()
     if M.is_production_environment() then
       -- Just show a warning notification but don't prompt to install
       vim.notify(
-        "⚠️ This appears to be a production Laravel environment. ⚠️\n" ..
-        "IDE Helper installation has been disabled for safety.\n" ..
-        "If this is actually a development environment, check your .env file.",
+        "⚠️ This appears to be a production Laravel environment. ⚠️\n"
+          .. "IDE Helper installation has been disabled for safety.\n"
+          .. "If this is actually a development environment, check your .env file.",
         vim.log.levels.WARN,
         {
           title = "Laravel IDE Helper - PRODUCTION ENVIRONMENT DETECTED",
-          timeout = 10000  -- 10 seconds
+          timeout = 10000, -- 10 seconds
         }
       )
       -- Clean up lock file
@@ -2465,8 +2617,9 @@ function M.check_laravel_project()
     if not M.has_ide_helper() then
       -- Ask user if they want to install IDE helper package
       local choice = vim.fn.confirm(
-        "Laravel IDE Helper is not installed in " .. vim.fn.fnamemodify(laravel_root, ":~") ..
-        ". Install for better autocompletion?",
+        "Laravel IDE Helper is not installed in "
+          .. vim.fn.fnamemodify(laravel_root, ":~")
+          .. ". Install for better autocompletion?",
         "&Yes\n&No",
         1
       )
@@ -2483,26 +2636,24 @@ function M.check_laravel_project()
           laravel_root,
           "ide_helper_install",
           "declined",
-          "Would you like to remember this choice for this Laravel project?\n" ..
-          "This will prevent future installation prompts.",
+          "Would you like to remember this choice for this Laravel project?\n"
+            .. "This will prevent future installation prompts.",
           "Preference saved in .nvim-helper. To enable installation prompts again, edit 'ide_helper_install=declined' to 'prompt'."
         )
       end
     elseif not M.ide_helper_files_exist() then
       -- Check if user has declined file generation before
-      if M.read_user_preference(laravel_root) and
-         M.read_user_preference(laravel_root)["ide_helper_generate"] == "declined" then
+      if
+        M.read_user_preference(laravel_root)
+        and M.read_user_preference(laravel_root)["ide_helper_generate"] == "declined"
+      then
         -- User previously declined, respect their choice
         cleanup_lock()
         return
       end
 
       -- IDE Helper is installed but files aren't generated
-      local choice = vim.fn.confirm(
-        "Generate Laravel IDE Helper files for better LSP integration?",
-        "&Yes\n&No",
-        1
-      )
+      local choice = vim.fn.confirm("Generate Laravel IDE Helper files for better LSP integration?", "&Yes\n&No", 1)
 
       -- Clean up lock file regardless of choice
       cleanup_lock()
@@ -2516,8 +2667,8 @@ function M.check_laravel_project()
           laravel_root,
           "ide_helper_generate",
           "declined",
-          "Would you like to remember this choice for this Laravel project?\n" ..
-          "This will prevent future file generation prompts.",
+          "Would you like to remember this choice for this Laravel project?\n"
+            .. "This will prevent future file generation prompts.",
           "Preference saved in .nvim-helper. To enable generation prompts again, edit 'ide_helper_generate=declined' to 'prompt'."
         )
       end
@@ -2543,9 +2694,13 @@ function M.setup_auto_ide_helper()
 
     -- If mode was specified, use it; otherwise use automatic detection
     M.generate_ide_helper(true, use_sail)
-  end, { desc = "Generate Laravel IDE Helper files", nargs = "?", complete = function()
-    return { "php", "sail" }
-  end })
+  end, {
+    desc = "Generate Laravel IDE Helper files",
+    nargs = "?",
+    complete = function()
+      return { "php", "sail" }
+    end,
+  })
 
   -- Create a command to install IDE helper package
   vim.api.nvim_create_user_command("LaravelInstallIDEHelper", function()
@@ -2613,7 +2768,7 @@ function M.setup_auto_ide_helper()
           end
         end, 2000) -- Wait 2 seconds after VimEnter
       end,
-      once = true
+      once = true,
     })
   end
 
@@ -2635,7 +2790,7 @@ function M.setup_auto_ide_helper()
     pattern = "*.php",
     callback = function()
       M.check_laravel_project()
-    end
+    end,
   })
 end
 
@@ -2645,10 +2800,10 @@ M.config = {
   docker_timeout = 360000, -- 6 minutes
   prefer_sail = true,
   commands = {
-    "ide-helper:generate",    -- PHPDoc generation for Laravel classes
-    "ide-helper:models -N",   -- PHPDoc generation for models (no write)
-    "ide-helper:meta",        -- PhpStorm Meta file generation
-  }
+    "ide-helper:generate", -- PHPDoc generation for Laravel classes
+    "ide-helper:models -N", -- PHPDoc generation for models (no write)
+    "ide-helper:meta", -- PhpStorm Meta file generation
+  },
 }
 
 -- Helper function to determine if we should use Sail or standard PHP
@@ -2675,7 +2830,7 @@ function M.with_sail_or_php(command)
   return {
     command = cmd,
     laravel_root = laravel_root,
-    use_sail = use_sail
+    use_sail = use_sail,
   }
 end
 
@@ -2704,7 +2859,7 @@ function M.run_artisan_command(command)
     "Using " .. (use_sail and "Laravel Sail" or "standard PHP"),
     "-------------------------------------------",
     "",
-    "Running: " .. cmd
+    "Running: " .. cmd,
   })
 
   -- Run the command
@@ -2728,7 +2883,7 @@ function M.run_artisan_command(command)
           "-------------------------------------------",
           "Command completed successfully",
           "-------------------------------------------",
-          ""
+          "",
         })
       else
         log_to_buffer({
@@ -2736,10 +2891,10 @@ function M.run_artisan_command(command)
           "-------------------------------------------",
           "Command failed with exit code: " .. code,
           "-------------------------------------------",
-          ""
+          "",
         })
       end
-    end
+    end,
   })
 
   if job_id <= 0 then
@@ -2748,7 +2903,7 @@ function M.run_artisan_command(command)
       "-------------------------------------------",
       "Failed to start command",
       "-------------------------------------------",
-      ""
+      "",
     })
 
     vim.notify("Failed to start Artisan command", vim.log.levels.ERROR)

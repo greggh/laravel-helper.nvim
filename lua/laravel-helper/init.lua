@@ -68,8 +68,8 @@ function M.setup(user_config)
     -- Warn the user about missing mega.cmdparse
     vim.notify(
       string.format(
-        "Laravel Helper v%s: mega.cmdparse not found. Using legacy commands. " ..
-        "Install ColinKennedy/mega.cmdparse for enhanced command experience.",
+        "Laravel Helper v%s: mega.cmdparse not found. Using legacy commands. "
+          .. "Install ColinKennedy/mega.cmdparse for enhanced command experience.",
         M.version.string()
       ),
       vim.log.levels.WARN
@@ -78,7 +78,7 @@ function M.setup(user_config)
 
   -- Log plugin initialization
   if vim.fn.exists("*luapad#log") == 1 then
-    vim.fn['luapad#log'](string.format("Laravel Helper v%s initialized", M.version.string()))
+    vim.fn["luapad#log"](string.format("Laravel Helper v%s initialized", M.version.string()))
   end
 
   return M

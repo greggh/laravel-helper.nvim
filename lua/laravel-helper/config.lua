@@ -24,10 +24,10 @@ M.defaults = {
 
   -- Commands to run for IDE Helper generation
   commands = {
-    "ide-helper:generate",    -- PHPDoc generation for Laravel classes
-    "ide-helper:models -N",   -- PHPDoc generation for models (no write)
-    "ide-helper:meta",        -- PhpStorm Meta file generation
-  }
+    "ide-helper:generate", -- PHPDoc generation for Laravel classes
+    "ide-helper:models -N", -- PHPDoc generation for models (no write)
+    "ide-helper:meta", -- PhpStorm Meta file generation
+  },
 }
 
 --- Validate configuration values
