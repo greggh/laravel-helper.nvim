@@ -23,7 +23,7 @@ Projects we aim to integrate with include:
 - conform.nvim setup for Pint and php-cs-fixer - Code formatting
 - neotest-pest - Testing framework integration
 - LuaSnip - Laravel-specific snippets
-- Support for both Intelephense and PHPActor LSPs
+- Support for both Intelephense and phpactor LSPs
 
 ## Features
 
