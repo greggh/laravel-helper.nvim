@@ -6,32 +6,9 @@
 
 ---@class LaravelHelper
 ---@field setup fun(config: table) Configure the plugin
+---@field version LaravelHelperVersion Version information
 
 local M = {}
-
--- Default configuration
----@class LaravelHelperConfig
----@field auto_detect boolean Whether to automatically detect Laravel projects and offer IDE Helper generation
----@field docker_timeout number Default timeout for Sail/Docker operations (in milliseconds)
----@field prefer_sail boolean Whether to automatically use Sail when available 
----@field commands string[] Commands to run for IDE Helper generation
-M.config = {
-  -- Whether to automatically detect Laravel projects and offer IDE Helper generation
-  auto_detect = true,
-  
-  -- Default timeout for Sail/Docker operations (in milliseconds)
-  docker_timeout = 360000, -- 6 minutes
-  
-  -- Whether to automatically use Sail when available
-  prefer_sail = true,
-  
-  -- Commands to run for IDE Helper generation
-  commands = {
-    "ide-helper:generate",    -- PHPDoc generation for Laravel classes
-    "ide-helper:models -N",   -- PHPDoc generation for models (no write)
-    "ide-helper:meta",        -- PhpStorm Meta file generation
-  }
-}
 
 -- Require core functionality lazily
 M.core = nil
@@ -50,10 +27,20 @@ end
 ---@param user_config? table User configuration
 ---@return LaravelHelper
 function M.setup(user_config)
-  -- Merge user config with defaults
-  if user_config then
-    M.config = vim.tbl_deep_extend("force", M.config, user_config)
+  -- Load version information
+  M.version = require("laravel-helper.version")
+  
+  -- Load and validate configuration
+  local config_module = require("laravel-helper.config")
+  local config, is_valid, error_message = config_module.merge(user_config)
+  
+  if not is_valid then
+    vim.notify("Laravel Helper: " .. error_message, vim.log.levels.ERROR)
+    return M
   end
+  
+  -- Store validated config
+  M.config = config
   
   -- Lazily load core module
   if not M.core then
@@ -80,10 +67,17 @@ function M.setup(user_config)
     
     -- Warn the user about missing mega.cmdparse
     vim.notify(
-      "Laravel Helper: mega.cmdparse not found. Using legacy commands. " ..
-      "Install ColinKennedy/mega.cmdparse for enhanced command experience.",
+      string.format(
+        "Laravel Helper v%s: mega.cmdparse not found. Using legacy commands. Install ColinKennedy/mega.cmdparse for enhanced command experience.",
+        M.version.string()
+      ),
       vim.log.levels.WARN
     )
+  end
+  
+  -- Log plugin initialization
+  if vim.fn.exists("*luapad#log") == 1 then
+    vim.fn['luapad#log'](string.format("Laravel Helper v%s initialized", M.version.string()))
   end
   
   return M
