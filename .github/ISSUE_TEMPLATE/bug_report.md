@@ -48,3 +48,15 @@ Add any other context about the problem here, such as:
 - Error messages from Neovim (:messages)
 - Logs from Laravel IDE Helper (enable debug mode first)
 - Any recent changes to your setup
+
+## Minimal Reproduction
+
+For faster debugging, try to reproduce the issue using our minimal configuration:
+
+1. Create a new directory for testing
+2. Copy `tests/minimal-init.lua` from this repo to your test directory
+3. Start Neovim with this minimal config:
+   ```bash
+   nvim --clean -u minimal-init.lua
+   ```
+4. Try to reproduce the issue with this minimal setup

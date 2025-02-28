@@ -4,10 +4,18 @@ This directory contains the test setup for Laravel Helper plugin.
 
 ## Test Structure
 
-- **minimal.vim**: A minimal Neovim configuration for testing
+- **minimal.vim**: A minimal Neovim configuration for automated testing
 - **basic_test.vim**: A simple test script that verifies the plugin loads correctly
 - **config_test.vim**: Tests for the configuration validation and merging functionality
 - **spec/**: (Future) Integration tests using the busted framework
+
+### Different Test Files
+
+This repository contains two different minimal configurations for testing:
+
+1. **`test/minimal.vim`**: Used by the CI system for automated testing. This configuration is designed for headless Neovim testing and is used in the GitHub Actions workflows.
+
+2. **`tests/minimal-init.lua`**: A minimal configuration file for manual testing and bug reproduction. Users can use this file to create a minimal reproducible example when reporting bugs.
 
 ## Running Tests
 
