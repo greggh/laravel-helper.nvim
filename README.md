@@ -5,6 +5,26 @@
 
 A Neovim plugin for Laravel development, with focus on Laravel IDE Helper integration.
 
+## Goals
+
+The primary goal of this plugin is to create a unified Laravel development experience in Neovim by integrating with the broader Laravel for Neovim ecosystem. This means:
+
+- Depending on and configuring other valuable Laravel/PHP plugins to create a cohesive experience
+- Adding support for Blade, Alpine, Tailwind, and other Laravel-adjacent technologies
+- Providing sensible defaults while allowing customization
+
+Projects we aim to integrate with include:
+- blade-nave.nvim - Blade syntax highlighting and navigation
+- blade-formatter - Code formatting for Blade templates
+- laravel.nvim - Laravel-specific utilities
+- tree-sitter-blade - Enhanced Blade syntax parsing
+- tailwind-tools.nvim - Tailwind CSS integration
+- nvim-dap with php-debug-adapter - Debugging support
+- conform.nvim setup for Pint and php-cs-fixer - Code formatting
+- neotest-pest - Testing framework integration
+- LuaSnip - Laravel-specific snippets
+- Support for both Intelephense and PHPActor LSPs
+
 ## Features
 
 - Automatic detection of Laravel projects
