@@ -191,28 +191,40 @@ function M.get_sail_or_php_command(cmd)
   return nil
 end
 
--- Forward other calls to core module but prevent recursion
-local core_keys = {}
+-- Instead of using metatable forwarding, we'll explicitly define the functions we want to expose
+-- This avoids any potential metatable recursion issues
 
-setmetatable(M, {
-  __index = function(_, key)
-    -- Prevent stack overflow by tracking which keys we're fetching
-    if core_keys[key] then
-      return nil
-    end
-    
-    -- Load core module if needed
-    if not M.core then
-      M.core = require("laravel-helper.core")
-    end
-    
-    -- Get the value from core safely
-    core_keys[key] = true
-    local value = M.core[key]
-    core_keys[key] = nil
-    
-    return value
+-- Ensure core module is loaded before use
+local function ensure_core()
+  if not M.core then
+    M.core = require("laravel-helper.core")
   end
-})
+  return M.core
+end
+
+-- Explicitly define functions that should be forwarded to core
+function M.find_laravel_root()
+  return ensure_core().find_laravel_root()
+end
+
+function M.has_sail()
+  return ensure_core().has_sail()
+end
+
+function M.is_ide_helper_installed()
+  return ensure_core().is_ide_helper_installed()
+end
+
+function M.is_sail_running()
+  return ensure_core().is_sail_running()
+end
+
+function M.check_laravel_project()
+  return ensure_core().check_laravel_project()
+end
+
+function M.debug_ide_helper_state()
+  return ensure_core().debug_ide_helper_state()
+end
 
 return M
