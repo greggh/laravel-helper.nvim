@@ -82,15 +82,15 @@ For a complete Laravel development environment, we recommend the following plugi
 
 ## Installation
 
-Using [lazy.nvim](https://github.com/folke/lazy.nvim):
+### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
 {
   "greggh/laravel-helper.nvim",
   dependencies = {
-    -- Enhanced command interface (optional but recommended)
-    "ColinKennedy/mega.cmdparse", 
-    "ColinKennedy/mega.logging",  -- Required by mega.cmdparse
+    -- Enhanced command interface
+    "ColinKennedy/mega.cmdparse",  -- Optional but recommended
+    "ColinKennedy/mega.logging",   -- Required by mega.cmdparse
     
     -- Core dependencies
     "MunifTanjim/nui.nvim",
@@ -129,6 +129,38 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
     })
   end,
 }
+```
+
+### Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
+
+```lua
+use {
+  'greggh/laravel-helper.nvim',
+  requires = {
+    -- Enhanced command interface
+    'ColinKennedy/mega.cmdparse',  -- Optional but recommended
+    'ColinKennedy/mega.logging',   -- Required by mega.cmdparse
+    
+    -- Core dependencies
+    'MunifTanjim/nui.nvim',
+  },
+  config = function()
+    require('laravel-helper').setup()
+  end
+}
+```
+
+### Using [vim-plug](https://github.com/junegunn/vim-plug)
+
+```viml
+" Core and enhanced command interface
+Plug 'MunifTanjim/nui.nvim'
+Plug 'ColinKennedy/mega.logging'   " Required by mega.cmdparse
+Plug 'ColinKennedy/mega.cmdparse'  " Optional but recommended
+Plug 'greggh/laravel-helper.nvim'
+
+" Then in your init.vim
+lua require('laravel-helper').setup()
 ```
 
 ## Configuration
