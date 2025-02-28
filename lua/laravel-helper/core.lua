@@ -563,6 +563,557 @@ function M.prefer_standard_php(laravel_root)
   return prefs["use_standard_php"] == "always"
 end
 
+-- Create a docker-compose.yml for Laravel Sail using artisan sail:install
+function M.create_default_docker_compose(laravel_root)
+  -- Setup floating window with title
+  M.show_ide_helper_window("Laravel Sail Setup")
+  
+  -- Add initial content
+  local log_to_buffer = M.create_buffer_logger()
+  log_to_buffer({
+    "Setting up Laravel Sail using artisan sail:install...",
+    "Working directory: " .. laravel_root,
+    "-------------------------------------------",
+    ""
+  })
+  
+  -- Use the shared logger
+  local log_to_buffer = M.create_buffer_logger()
+  
+  -- Use php artisan sail:install to create docker-compose.yml
+  -- First check if this artisan command is available (it was added in Laravel 8.12)
+  log_to_buffer("Checking for sail:install command in Laravel...")
+  
+  -- Make sure we have proper debug information
+  log_to_buffer("Laravel root: " .. laravel_root)
+  log_to_buffer("Testing PHP availability...")
+  local php_version = vim.fn.system("php --version 2>/dev/null")
+  local php_available = php_version ~= "" and not php_version:match("command not found")
+  log_to_buffer("PHP " .. (php_available and "is available" or "is NOT available"))
+  
+  -- Verify artisan command exists
+  log_to_buffer("Checking if artisan file exists...")
+  local artisan_exists = vim.fn.filereadable(laravel_root .. "/artisan") == 1
+  log_to_buffer("Artisan file " .. (artisan_exists and "exists" or "does NOT exist"))
+  
+  -- Try artisan command
+  log_to_buffer("Testing artisan command...")
+  local check_artisan_cmd = "cd " .. vim.fn.shellescape(laravel_root) .. " && php artisan --version 2>&1"
+  local artisan_output = vim.fn.system(check_artisan_cmd)
+  local artisan_available = artisan_output:match("Laravel Framework")
+  log_to_buffer("Artisan output: " .. artisan_output:gsub("\n", " | "))
+  log_to_buffer("Artisan command " .. (artisan_available and "works correctly" or "has issues"))
+  
+  -- Check for sail:install command
+  log_to_buffer("Checking for sail:install command...")
+  -- Make the command more reliable - use full output and more flexible grep
+  local check_command = "cd " .. vim.fn.shellescape(laravel_root) .. " && php artisan list --all 2>/dev/null | grep -i 'sail\\|install'"
+  local sail_install_output = vim.fn.system(check_command)
+  
+  -- Better detection logic
+  local has_sail_install = false
+  if type(sail_install_output) == "string" and sail_install_output ~= "" then
+    has_sail_install = sail_install_output:match("sail") and sail_install_output:match("install")
+    log_to_buffer("Found output that might contain sail:install: " .. sail_install_output)
+  end
+  
+  -- Always try to get a direct response about sail:install presence
+  local direct_check = "cd " .. vim.fn.shellescape(laravel_root) .. " && php artisan help sail:install >/dev/null 2>&1 && echo yes || echo no"
+  local direct_result = vim.fn.system(direct_check):gsub("%s+", "")
+  log_to_buffer("Direct check for sail:install command: " .. direct_result)
+  
+  -- If direct check is positive, trust it
+  if direct_result == "yes" then
+    has_sail_install = true
+    log_to_buffer("Direct check confirms sail:install is available")
+  end
+  
+  -- Handle sail:install command output logging
+  if sail_install_output ~= "" and type(sail_install_output) == "string" then
+    log_to_buffer("Found sail:install in command output: " .. (has_sail_install and "Yes" or "No"))
+    log_to_buffer("sail:install output: " .. sail_install_output:gsub("\n", " | "))
+  else
+    log_to_buffer("No output from sail:install check")
+  end
+  
+  log_to_buffer("Command exit code: " .. vim.v.shell_error)
+  log_to_buffer("---------- Sail detection summary ----------")
+  log_to_buffer("Sail detection results:")
+  log_to_buffer("- PHP available: " .. (php_available and "Yes" or "No"))
+  log_to_buffer("- Artisan file exists: " .. (artisan_exists and "Yes" or "No"))
+  log_to_buffer("- Artisan command works: " .. (artisan_available and "Yes" or "No"))
+  log_to_buffer("- sail:install detected: " .. (has_sail_install and "Yes" or "No"))
+  log_to_buffer("---------- End summary ----------")
+  
+  local success = false
+  
+  -- If sail:install is detected, or if we're creating a docker-compose file regardless
+  if has_sail_install or true then -- Always prompt for database type
+    -- Laravel 8.12+ with sail:install command - ask user for database preference
+    log_to_buffer("Asking user for database preference...")
+    
+    -- Schedule on the main thread to show a UI prompt
+    local db_choice
+    vim.schedule(function()
+      db_choice = vim.fn.confirm(
+        "Which database would you like to use with Laravel Sail?",
+        "&MySQL\n&PostgreSQL\n&MariaDB\n&Cancel",
+        1 -- Default to MySQL
+      )
+    end)
+    
+    -- Wait for user to make a choice
+    vim.wait(10000, function() return db_choice ~= nil end, 100)
+    
+    -- Process the user's database choice
+    local db_type
+    if db_choice == 1 then -- MySQL
+      db_type = "mysql"
+    elseif db_choice == 2 then -- PostgreSQL
+      db_type = "pgsql"
+    elseif db_choice == 3 then -- MariaDB
+      db_type = "mariadb"
+    else -- Cancel
+      log_to_buffer("User cancelled database selection.")
+      vim.notify("Laravel Sail installation cancelled by user", 
+                vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+      success = nil
+      return nil
+    end
+    
+    -- Now ask about additional services (Mailpit, Redis, Meilisearch)
+    log_to_buffer("Asking user about additional services...")
+    
+    -- Create a list to store selected services
+    local services = { db_type }
+    
+    -- Function to confirm if user wants to include a service
+    local function ask_for_service(service_name, service_id)
+      local service_choice
+      vim.schedule(function()
+        service_choice = vim.fn.confirm(
+          "Would you like to include " .. service_name .. " in your Sail setup?",
+          "&Yes\n&No",
+          2 -- Default to No
+        )
+      end)
+      
+      -- Wait for user to make a choice
+      vim.wait(10000, function() return service_choice ~= nil end, 100)
+      
+      if service_choice == 1 then -- Yes
+        table.insert(services, service_id)
+        log_to_buffer("Adding " .. service_name .. " to Sail configuration.")
+        return true
+      end
+      
+      return false
+    end
+    
+    -- Ask about each service
+    -- Build a clear message about selected services as we go
+    local selected_services_msg = "Selected database: " .. db_type
+    
+    -- Ask about Redis
+    if ask_for_service("Redis", "redis") then
+      selected_services_msg = selected_services_msg .. ", redis"
+    end
+    
+    -- Ask about Mailpit
+    if ask_for_service("Mailpit (mail testing)", "mailpit") then
+      selected_services_msg = selected_services_msg .. ", mailpit"
+    end
+    
+    -- Ask about Meilisearch
+    if ask_for_service("Meilisearch (search engine)", "meilisearch") then
+      selected_services_msg = selected_services_msg .. ", meilisearch"
+    end
+    
+    -- Construct the final with argument
+    local with_arg = table.concat(services, ",")
+    
+    log_to_buffer({
+      "",
+      "-------------------------------------------",
+      "Summary of selected services:",
+      selected_services_msg,
+      "Installing Sail with these options: " .. with_arg,
+      "-------------------------------------------",
+      ""
+    })
+    
+    -- Create a completion flag for synchronization
+    local install_complete = false
+    local install_success = false
+    
+    log_to_buffer({
+      "",
+      "Running sail:install command synchronously - please wait...",
+      "Command: php artisan sail:install --with=" .. with_arg
+    })
+    
+    -- Create a buffer-only way to display output from the command
+    local function append_install_output(data, is_stderr)
+      if data and #data > 0 then
+        -- Process string or table of strings
+        local lines = type(data) == "table" and data or {data}
+        for _, line in ipairs(lines) do
+          if line and line ~= "" then
+            -- Check if this is an actual error message
+            local is_real_error = is_stderr and 
+                                  line:match("^ERROR:") or 
+                                  line:match("^Fatal:") or 
+                                  line:match("exception") or
+                                  line:match("failed") or
+                                  line:match("Error:")
+            
+            -- Docker output to stderr often isn't an error, just normal status messages
+            if is_real_error then
+              log_to_buffer("ERROR: " .. line)
+            else
+              log_to_buffer(line)
+            end
+          end
+        end
+      end
+    end
+    
+    -- Run the sail:install command asynchronously but with proper coordination
+    local install_cmd = M.get_sail_install_cmd(with_arg)
+    local job_id = vim.fn.jobstart(install_cmd, {
+      cwd = laravel_root,
+      stdout_buffered = false,
+      stderr_buffered = false,
+      on_stdout = function(_, data)
+        append_install_output(data, false) -- stdout, not stderr
+      end,
+      on_stderr = function(_, data)
+        append_install_output(data, true)  -- stderr, might not be an actual error 
+      end,
+      on_exit = function(_, code)
+        if code == 0 then
+          log_to_buffer({
+            "",
+            "-------------------------------------------",
+            "Laravel Sail installed successfully!",
+            "Docker compose file has been created at: " .. laravel_root .. "/docker-compose.yml",
+            "-------------------------------------------",
+            ""
+          })
+          install_success = true
+        else
+          log_to_buffer({
+            "",
+            "-------------------------------------------",
+            "Failed to install Laravel Sail with exit code: " .. code,
+            "-------------------------------------------",
+            ""
+          })
+          install_success = false
+        end
+        install_complete = true -- Signal command completion
+      end
+    })
+    
+    if job_id <= 0 then
+      log_to_buffer({
+        "Failed to execute artisan sail:install command.",
+        "This could mean PHP is not available or the artisan command is broken."
+      })
+      install_complete = true
+      install_success = false
+    end
+    
+    -- Wait for the sail:install command to complete
+    log_to_buffer("Waiting for sail:install to complete...")
+    local wait_result = vim.wait(360000, function() return install_complete end, 100) -- 6 minute timeout
+    
+    if not wait_result then
+      log_to_buffer({
+        "",
+        "-------------------------------------------",
+        "ERROR: sail:install command timed out after 6 minutes!",
+        "-------------------------------------------",
+        ""
+      })
+      install_success = false
+    end
+    
+    -- Now handle the result of the sail:install command
+    if install_success then
+      -- Sail was installed successfully
+      log_to_buffer("Docker compose file created successfully.")
+      
+      -- Verify that the docker-compose.yml file exists
+      if vim.fn.filereadable(laravel_root .. "/docker-compose.yml") == 1 then
+        log_to_buffer("Verified docker-compose.yml file exists.")
+        
+        -- Now try to start Sail with the new docker-compose.yml
+        log_to_buffer({
+          "",
+          "-------------------------------------------",
+          "Starting Laravel Sail with the new configuration...",
+          "-------------------------------------------",
+          ""
+        })
+        
+        -- Reset the completion flags for Sail startup
+        install_complete = false
+        install_success = false
+        
+        -- Start Sail with --remove-orphans to clean up old containers
+        local sail_cmd = M.get_full_command(M.get_sail_up_cmd(), laravel_root)
+        local sail_job_id = vim.fn.jobstart(sail_cmd, {
+          stdout_buffered = false,
+          stderr_buffered = false,
+          on_stdout = function(_, data)
+            append_install_output(data, false) -- stdout, not stderr
+          end,
+          on_stderr = function(_, data)
+            append_install_output(data, true)  -- stderr, might not be an actual error
+          end,
+          on_exit = function(_, code)
+            if code == 0 then
+              log_to_buffer({
+                "",
+                "-------------------------------------------",
+                "Laravel Sail started successfully!",
+                "Now proceeding with IDE Helper installation using Sail.",
+                "-------------------------------------------",
+                ""
+              })
+              install_success = true
+            else
+              log_to_buffer({
+                "",
+                "-------------------------------------------",
+                "Failed to start Laravel Sail with exit code: " .. code,
+                "-------------------------------------------",
+                ""
+              })
+              install_success = false
+            end
+            install_complete = true -- Signal command completion
+          end
+        })
+        
+        if sail_job_id <= 0 then
+          log_to_buffer({
+            "Failed to execute sail up command.",
+            "This could mean the sail script is not executable."
+          })
+          install_complete = true
+          install_success = false
+        end
+        
+        -- Wait for the sail startup command to complete
+        log_to_buffer("Waiting for Sail to start...")
+        local sail_wait_result = vim.wait(360000, function() return install_complete end, 100) -- 6 minute timeout for sail startup
+        
+        if not sail_wait_result then
+          log_to_buffer({
+            "",
+            "-------------------------------------------",
+            "ERROR: Sail startup timed out after 6 minutes!",
+            "-------------------------------------------",
+            ""
+          })
+          install_success = false
+        end
+        
+        -- Set final success based on Sail startup
+        success = install_success
+        
+        -- If Sail started successfully, give it a moment to fully initialize
+        if success then
+          -- Mark the fact that we're in the middle of installation to prevent duplicate prompts
+          vim.g.laravel_ide_helper_installing = true
+          
+          -- IMPORTANT: Set flags to indicate we've made a choice about Sail vs PHP
+          -- and that we've already asked about it, to prevent double-prompting
+          vim.g.laravel_ide_helper_use_sail = true -- Since we just set up Sail
+          vim.g.laravel_ide_helper_asked_about_sail = true -- Flag as already prompted about saving
+          
+          if M.debug_mode then
+            vim.notify("DEBUG: Docker compose created successfully, now using Sail", 
+                      vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+          end
+          
+          log_to_buffer("Waiting 5 seconds for Docker containers to fully initialize...")
+          
+          -- Use timer instead of sleep to avoid freezing UI
+          vim.defer_fn(function()
+            vim.g.laravel_ide_helper_installing = false
+          end, 5000) -- 5 second delay
+        else
+          -- Ask how to proceed if Sail startup failed
+          log_to_buffer("Sail startup was not successful.")
+          
+          local choice
+          vim.schedule(function()
+            choice = vim.fn.confirm(
+              "Failed to start Laravel Sail. How would you like to proceed?",
+              "&Continue with standard PHP\nC&ancel installation",
+              1 -- Default to continuing with PHP
+            )
+          end)
+          
+          -- Wait for user choice
+          vim.wait(10000, function() return choice ~= nil end, 100)
+          
+          if choice == 1 then -- Continue with standard PHP
+            log_to_buffer({
+              "",
+              "User chose to continue with standard PHP.",
+              ""
+            })
+            
+            -- IMPORTANT: Set flags to indicate we've made a choice to use standard PHP
+            -- instead of Sail, and prevent duplicating the choice prompt
+            vim.g.laravel_ide_helper_use_sail = false -- Use standard PHP
+            vim.g.laravel_ide_helper_asked_about_sail = true -- Flag as already prompted
+            
+            if M.debug_mode then
+              vim.notify("DEBUG: Using standard PHP after Sail startup failure", 
+                        vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+            end
+            
+            success = false -- This will trigger fallback to standard PHP
+          else -- Cancel
+            log_to_buffer({
+              "",
+              "User cancelled the IDE Helper installation.",
+              ""
+            })
+            vim.notify("Laravel IDE Helper installation cancelled by user", 
+                      vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+            success = nil -- Special value to indicate cancellation
+          end
+        end
+      else
+        log_to_buffer("WARNING: docker-compose.yml file not found despite successful installation!")
+        log_to_buffer("Continuing with standard PHP since we can't start Sail without docker-compose.yml.")
+        
+        -- IMPORTANT: Set flags to indicate we need to use standard PHP without docker-compose
+        vim.g.laravel_ide_helper_use_sail = false -- Use standard PHP
+        vim.g.laravel_ide_helper_asked_about_sail = true -- Flag as already prompted
+        
+        if M.debug_mode then
+          vim.notify("DEBUG: Using standard PHP due to missing docker-compose.yml", 
+                    vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+        end
+        
+        success = false
+      end
+    else
+      -- Sail installation failed - ask how to proceed
+      log_to_buffer("Sail installation was not successful.")
+      
+      local choice
+      vim.schedule(function()
+        choice = vim.fn.confirm(
+          "Laravel Sail installation failed. How would you like to proceed?",
+          "&Continue with standard PHP\nC&ancel installation",
+          1 -- Default to continuing with PHP
+        )
+      end)
+      
+      -- Wait for user choice
+      vim.wait(10000, function() return choice ~= nil end, 100)
+      
+      if choice == 1 then -- Continue with standard PHP
+        log_to_buffer({
+          "",
+          "User chose to continue with standard PHP.",
+          ""
+        })
+        
+        -- IMPORTANT: Set flags to indicate standard PHP preference after Sail installation failure
+        vim.g.laravel_ide_helper_use_sail = false -- Use standard PHP
+        vim.g.laravel_ide_helper_asked_about_sail = true -- Flag as already prompted
+        
+        if M.debug_mode then
+          vim.notify("DEBUG: Using standard PHP after Sail installation failure", 
+                    vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+        end
+        
+        success = false -- This will trigger fallback to standard PHP
+      else -- Cancel
+        log_to_buffer({
+          "",
+          "User cancelled the IDE Helper installation.",
+          ""
+        })
+        vim.notify("Laravel IDE Helper installation cancelled by user", 
+                  vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+        success = nil -- Special value to indicate cancellation
+      end
+    end
+  else
+    -- Command not found
+    log_to_buffer({
+      "The 'sail:install' command was not found in your Laravel project.",
+      "Debug information:",
+      "- Working directory: " .. laravel_root,
+      "- Artisan command available: " .. (artisan_available and "Yes" or "No"),
+      "- Sail executable exists: " .. (vim.fn.filereadable(laravel_root .. "/vendor/bin/sail") == 1 and "Yes" or "No"),
+      "",
+      "Possible causes:",
+      "1. You're using an older Laravel version (< 8.12) that doesn't have the sail:install command",
+      "2. Laravel Sail is not properly installed in this project",
+      "3. The php command might not be available in your PATH",
+      "4. The artisan command might be customized or broken in this project",
+      "",
+      "We cannot use Sail for IDE Helper installation without this command."
+    })
+    
+    -- Ask user how to proceed
+    vim.schedule(function()
+      local choice = vim.fn.confirm(
+        "Laravel Sail cannot be set up automatically (command not available). How would you like to proceed?",
+        "&Continue with standard PHP\nC&ancel installation",
+        1 -- Default to continuing with PHP
+      )
+      
+      if choice == 1 then -- Continue with standard PHP
+        log_to_buffer({
+          "",
+          "User chose to continue with standard PHP.",
+          ""
+        })
+        success = false -- This will trigger fallback to standard PHP
+      else -- Cancel
+        log_to_buffer({
+          "",
+          "User cancelled the IDE Helper installation.",
+          ""
+        })
+        vim.notify("Laravel IDE Helper installation cancelled by user", 
+                  vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+        success = nil -- Special value to indicate cancellation
+      end
+    end)
+  end
+  
+  -- Wait for the job to complete (this is synchronous)
+  -- Also handle timeout by putting a maximum wait time
+  local wait_result = vim.wait(60000, function() return success ~= nil end, 100) -- 1 minute timeout
+  
+  if success == nil then
+    -- Installation was cancelled by user
+    return nil -- Return nil to indicate cancellation
+  elseif success then
+    vim.notify("Successfully set up Laravel Sail and created docker-compose.yml", 
+              vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+    return true
+  else
+    -- Failed but user chose to continue with standard PHP
+    vim.notify("Continuing with standard PHP install for Laravel IDE Helper", 
+              vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+    return false
+  end
+end
+
 -- Check if Docker is installed and running
 function M.is_docker_available()
   -- First check if docker is installed
@@ -1175,12 +1726,209 @@ function M.install_ide_helper()
               vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
   end
   
+  -- Special case: Sail is installed but docker-compose.yml is missing
+  if use_sail and not has_docker_compose then
+    -- Debug output only if debug mode is enabled
+    if M.debug_mode then
+      vim.notify("Docker compose is missing, asking what to do",
+                vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+    end
+    
+    -- First ask about docker-compose
+    local compose_choice = vim.fn.confirm(
+      "Laravel Sail is installed but no docker-compose.yml file was found. What would you like to do?",
+      "&Create default docker-compose.yml\n&Use standard composer\nCa&ncel",
+      1 -- Default to creating docker-compose.yml
+    )
+    
+    -- Now handle each possible choice
+    if compose_choice == 1 then -- Create docker-compose.yml
+      -- NOW ask about remembering, AFTER they've chosen to create docker-compose
+      local remember_choice = vim.fn.confirm(
+        "Would you like to remember your choice to use Sail for future operations?",
+        "&Yes\n&No",
+        1 -- Default to Yes
+      )
+      
+      if remember_choice == 1 then -- Yes
+        -- User said yes - save the preference for Sail
+        local success, err = M.save_user_preference(laravel_root, "use_sail", "true")
+        if success then
+          vim.notify("Saved preference to use Sail for future operations", vim.log.levels.INFO)
+        else
+          vim.notify("Failed to save preference: " .. (err or "unknown error"), vim.log.levels.WARN)
+        end
+      end
+      
+      -- User wants to use Sail - set flags
+      vim.g.laravel_ide_helper_use_sail = true
+      vim.g.laravel_ide_helper_asked_about_sail = true
+      
+      if M.debug_mode then
+        vim.notify("Creating docker-compose.yml", vim.log.levels.DEBUG)
+      end
+      
+      local result = M.create_default_docker_compose(laravel_root)
+      if result == true then
+        vim.notify("Created docker-compose.yml, now continuing with Sail...", 
+                  vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+        use_sail = true
+        has_docker_compose = true
+      else
+        -- Failed to create docker-compose.yml, fall back to standard composer
+        use_sail = false
+      end
+    elseif compose_choice == 2 then -- Use standard composer
+      -- NOW ask about remembering, AFTER they've chosen to use standard PHP
+      local remember_choice = vim.fn.confirm(
+        "Would you like to remember your choice to use standard PHP for future operations?",
+        "&Yes\n&No",
+        1 -- Default to Yes
+      )
+      
+      if remember_choice == 1 then -- Yes
+        -- User said yes - save the preference for standard PHP
+        local success, err = M.save_user_preference(laravel_root, "use_sail", "false")
+        if success then
+          vim.notify("Saved preference to use standard PHP for future operations", vim.log.levels.INFO)
+        else
+          vim.notify("Failed to save preference: " .. (err or "unknown error"), vim.log.levels.WARN)
+        end
+      end
+      
+      -- User wants to use standard PHP - set flags
+      vim.g.laravel_ide_helper_use_sail = false
+      vim.g.laravel_ide_helper_asked_about_sail = true
+      use_sail = false
+    else -- Cancel (choice == 3 or any other value)
+      vim.notify("Laravel IDE Helper installation cancelled by user", 
+                vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+      vim.g.laravel_ide_helper_installing = false
+      return false
+    end
+  end
+  
+  -- Now handle the case where Sail is installed but not running
+  if use_sail and not sail_running then
+    local choice = vim.fn.confirm(
+      "Laravel Sail is installed but not running. How would you like to install IDE Helper?",
+      "&Start Sail first\n&Use standard composer\n&Cancel",
+      1
+    )
+    
+    if choice == 1 then -- Start Sail first
+      if not has_docker_compose then
+        vim.notify("Docker Compose file not found. Using standard PHP instead.", 
+                  vim.log.levels.WARN, { title = "Laravel IDE Helper" })
+        use_sail = false
+      else
+        vim.notify("Starting Laravel Sail...", vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+        
+        -- Setup floating window with title
+        M.show_ide_helper_window("Laravel Sail Startup")
+        
+        -- Add initial content
+        local log_to_sail_buffer = M.create_buffer_logger()
+        log_to_sail_buffer({
+          "Starting Laravel Sail...",
+          "Command: " .. M.get_sail_up_cmd(),
+          "Working directory: " .. laravel_root,
+          "-------------------------------------------",
+          ""
+        })
+        
+        -- Start Sail with more verbose output and orphan container cleanup
+        local sail_start_cmd = M.get_sail_up_cmd()
+        local sail_job_id = vim.fn.jobstart(sail_start_cmd, {
+          cwd = laravel_root,
+          stdout_buffered = false,
+          stderr_buffered = false,
+          on_stdout = function(_, data)
+            if data and #data > 0 then
+              log_to_sail_buffer(data)
+            end
+          end,
+          on_stderr = function(_, data)
+            if data and #data > 0 then
+              log_to_sail_buffer(data)
+            end
+          end,
+          on_exit = function(_, code)
+            if code == 0 then
+              log_to_sail_buffer({
+                "",
+                "-------------------------------------------",
+                "Laravel Sail started successfully!",
+                "Installing IDE Helper with Sail..."
+              })
+              
+              vim.notify("Laravel Sail started successfully. Installing IDE Helper...", 
+                        vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+              
+              -- Wait a bit for Docker to fully initialize
+              vim.defer_fn(function()
+                -- Now install with Sail
+                M.install_ide_helper_with_command(laravel_root, true, nil)
+              end, 5000) -- Increased delay to ensure Docker is fully ready
+            else
+              log_to_sail_buffer({
+                "",
+                "-------------------------------------------",
+                "Failed to start Laravel Sail with exit code: " .. code,
+                "",
+                "Possible issues:",
+                "1. Docker might not be running",
+                "2. There might be port conflicts with existing services",
+                "3. Docker compose might have configuration errors",
+                "",
+                "Falling back to standard composer..."
+              })
+              
+              vim.notify("Failed to start Laravel Sail. Using standard composer instead.", 
+                        vim.log.levels.WARN, { title = "Laravel IDE Helper" })
+              
+              -- Fall back to standard composer
+              vim.defer_fn(function()
+                M.install_ide_helper_with_command(laravel_root, false, nil) 
+              end, 1000)
+            end
+          end
+        })
+        
+        if sail_job_id <= 0 then
+          log_to_sail_buffer({
+            "",
+            "-------------------------------------------",
+            "Failed to execute Sail command.",
+            "Check if ./vendor/bin/sail is executable.",
+            "Falling back to standard composer..."
+          })
+          
+          vim.notify("Failed to execute Sail command. Using standard composer instead.", 
+                    vim.log.levels.WARN, { title = "Laravel IDE Helper" })
+          
+          vim.defer_fn(function()
+            M.install_ide_helper_with_command(laravel_root, false, nil)
+          end, 1000)
+        end
+        
+        -- We've scheduled the installation after Sail starts
+        return true
+      end
+    elseif choice == 2 then -- Use standard composer
+      use_sail = false
+    else -- Cancel
+      vim.notify("Laravel IDE Helper installation cancelled by user", 
+                vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+      vim.g.laravel_ide_helper_installing = false
+      return false
+    end
+  end
+  
   -- Set up the window for installation output
   M.show_ide_helper_window("Laravel IDE Helper Installation")
   
-  -- Use local command or sail based on availability and preferences
-  use_sail = use_sail and not M.prefer_standard_php(laravel_root)
-  
+  -- Final command construction - by this point, use_sail should reflect user choice
   local cmd
   if use_sail then
     cmd = "cd " .. vim.fn.shellescape(laravel_root) .. " && ./vendor/bin/sail composer require --dev barryvdh/laravel-ide-helper"
