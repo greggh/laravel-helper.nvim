@@ -191,13 +191,27 @@ function M.get_sail_or_php_command(cmd)
   return nil
 end
 
--- Forward other calls to core module
+-- Forward other calls to core module but prevent recursion
+local core_keys = {}
+
 setmetatable(M, {
   __index = function(_, key)
+    -- Prevent stack overflow by tracking which keys we're fetching
+    if core_keys[key] then
+      return nil
+    end
+    
+    -- Load core module if needed
     if not M.core then
       M.core = require("laravel-helper.core")
     end
-    return M.core[key]
+    
+    -- Get the value from core safely
+    core_keys[key] = true
+    local value = M.core[key]
+    core_keys[key] = nil
+    
+    return value
   end
 })
 
