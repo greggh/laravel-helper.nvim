@@ -386,10 +386,11 @@ end
 -- Setup nui.nvim popup
 M.ide_helper_window = {
   popup = nil,
+  buffer = nil,
   lines = {},
   mounted = false,
   logger = function(message) 
-    -- Minimal logger function
+    -- Default logger if NUI isn't available
     if type(message) == "table" then
       vim.notify(table.concat(message, "\n"))
     elseif type(message) == "string" then
@@ -398,31 +399,143 @@ M.ide_helper_window = {
   end
 }
 
--- Minimal implementation of IDE Helper window
+-- Create a floating window using nui.nvim
 function M.show_ide_helper_window(title)
-  -- Minimal implementation that defaults to vim.notify
-  vim.notify("Laravel IDE Helper: " .. (title or ""), vim.log.levels.INFO)
+  title = title or "Laravel IDE Helper"
+  
+  -- Try to load nui.nvim
+  local ok, Popup = pcall(require, "nui.popup")
+  if not ok then
+    vim.notify("nui.nvim not found. Using default notifications.", vim.log.levels.WARN)
+    vim.notify("Laravel IDE Helper: " .. title, vim.log.levels.INFO)
+    return M.ide_helper_window
+  end
+  
+  -- Close existing popup if it exists
+  if M.ide_helper_window.popup and M.ide_helper_window.mounted then
+    pcall(function() M.ide_helper_window.popup:unmount() end)
+    M.ide_helper_window.mounted = false
+  end
+  
+  -- Create a new popup window
+  local popup = Popup({
+    enter = true,
+    focusable = true,
+    border = {
+      style = "rounded",
+      text = {
+        top = " " .. title .. " ",
+        top_align = "center",
+      },
+    },
+    position = "50%",
+    size = {
+      width = math.min(120, vim.o.columns - 4),
+      height = math.min(30, vim.o.lines - 4),
+    },
+    buf_options = {
+      modifiable = true,
+      readonly = false,
+      filetype = "markdown",
+    },
+    win_options = {
+      winblend = 0,
+      winhighlight = "Normal:Normal,FloatBorder:FloatBorder",
+      wrap = true,
+    },
+  })
+  
+  -- Add keymaps to the popup
+  popup:map("n", "q", function()
+    popup:unmount()
+    M.ide_helper_window.mounted = false
+  end, { noremap = true })
+  
+  popup:map("n", "<Esc>", function()
+    popup:unmount()
+    M.ide_helper_window.mounted = false
+  end, { noremap = true })
+  
+  -- Mount the popup
+  popup:mount()
+  
+  -- Save the popup reference
+  M.ide_helper_window.popup = popup
+  M.ide_helper_window.buffer = popup.bufnr
+  M.ide_helper_window.mounted = true
+  
+  -- Clear stored lines and set up logger function
+  M.ide_helper_window.lines = {}
+  M.ide_helper_window.logger = function(message)
+    if not M.ide_helper_window.mounted then
+      M.show_ide_helper_window(title)
+    end
+    
+    if not message then return end
+    
+    local lines_to_add = {}
+    if type(message) == "table" then
+      for _, line in ipairs(message) do
+        if line and line ~= "" then
+          table.insert(lines_to_add, line)
+        end
+      end
+    elseif type(message) == "string" then
+      for line in message:gmatch("[^\r\n]+") do
+        table.insert(lines_to_add, line)
+      end
+    end
+    
+    -- Add to stored lines
+    for _, line in ipairs(lines_to_add) do
+      table.insert(M.ide_helper_window.lines, line)
+    end
+    
+    -- Add to buffer
+    if M.ide_helper_window.mounted and M.ide_helper_window.buffer and 
+       vim.api.nvim_buf_is_valid(M.ide_helper_window.buffer) then
+      -- Get current line count
+      local line_count = vim.api.nvim_buf_line_count(M.ide_helper_window.buffer)
+      
+      -- Append lines to buffer
+      vim.api.nvim_buf_set_option(M.ide_helper_window.buffer, "modifiable", true)
+      vim.api.nvim_buf_set_lines(M.ide_helper_window.buffer, line_count, line_count, false, lines_to_add)
+      vim.api.nvim_buf_set_option(M.ide_helper_window.buffer, "modifiable", false)
+      
+      -- Scroll to bottom if window is still valid
+      if M.ide_helper_window.popup and M.ide_helper_window.popup.winid and
+         vim.api.nvim_win_is_valid(M.ide_helper_window.popup.winid) then
+        vim.api.nvim_win_set_cursor(M.ide_helper_window.popup.winid, {line_count + #lines_to_add, 0})
+      end
+    end
+  end
+  
   return M.ide_helper_window
 end
 
--- Minimal implementation of buffer logger
+-- Create a buffer logger function
 function M.create_buffer_logger()
+  -- Return a function that logs to the popup window
   return function(message)
     if not message then return end
     
-    if type(message) == "table" then
-      vim.notify(table.concat(message, "\n"))
-    elseif type(message) == "string" then
-      vim.notify(message)
+    if M.ide_helper_window.logger then
+      M.ide_helper_window.logger(message)
+    else
+      -- Fallback if logger isn't initialized
+      if type(message) == "table" then
+        vim.notify(table.concat(message, "\n"), vim.log.levels.INFO)
+      elseif type(message) == "string" then
+        vim.notify(message, vim.log.levels.INFO)
+      end
     end
   end
 end
 
--- Generate IDE Helper stubs (minimal implementation)
+-- Generate IDE Helper files with real functionality
 function M.generate_ide_helper(force)
-  vim.notify("Generate IDE Helper called with force=" .. tostring(force), vim.log.levels.INFO)
+  vim.notify("Generating Laravel IDE Helper files...", vim.log.levels.INFO)
   
-  -- For now, just notify about what would happen
   local laravel_root = M.find_laravel_root()
   if not laravel_root then
     vim.notify("Not a Laravel project", vim.log.levels.WARN)
@@ -438,19 +551,129 @@ function M.generate_ide_helper(force)
   if not M.has_ide_helper() then
     vim.notify("Laravel IDE Helper is not installed. Please install it first.", 
              vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+    
+    -- Ask if they want to install it
+    vim.schedule(function()
+      local install_now = vim.fn.confirm(
+        "Laravel IDE Helper is not installed. Would you like to install it now?",
+        "&Yes\n&No",
+        1
+      )
+      
+      if install_now == 1 then
+        M.install_ide_helper()
+      end
+    end)
+    
     return false
   end
   
-  vim.notify("Would generate IDE Helper files for Laravel project at: " .. laravel_root, 
-           vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+  -- Set up the window for generation output
+  M.show_ide_helper_window("Laravel IDE Helper Generation")
+  
+  -- Use local command or sail based on availability and preferences
+  local use_sail = M.has_sail() and not M.prefer_standard_php(laravel_root)
+  
+  -- Commands to run
+  local commands = {}
+  
+  -- Add IDE helper commands with Sail or PHP prefix
+  if use_sail then
+    table.insert(commands, "cd " .. vim.fn.shellescape(laravel_root) .. " && ./vendor/bin/sail artisan ide-helper:generate")
+    table.insert(commands, "cd " .. vim.fn.shellescape(laravel_root) .. " && ./vendor/bin/sail artisan ide-helper:models -N")
+    table.insert(commands, "cd " .. vim.fn.shellescape(laravel_root) .. " && ./vendor/bin/sail artisan ide-helper:meta")
+  else
+    table.insert(commands, "cd " .. vim.fn.shellescape(laravel_root) .. " && php artisan ide-helper:generate")
+    table.insert(commands, "cd " .. vim.fn.shellescape(laravel_root) .. " && php artisan ide-helper:models -N")
+    table.insert(commands, "cd " .. vim.fn.shellescape(laravel_root) .. " && php artisan ide-helper:meta")
+  end
+  
+  -- Buffer to collect output
+  local lines = {}
+  local function append_to_output(data)
+    if type(data) == "table" then
+      for _, line in ipairs(data) do
+        if line and line ~= "" then
+          table.insert(lines, line)
+          if #lines > 100 then -- Prevent showing too many lines at once
+            vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
+            lines = {}
+          end
+        end
+      end
+    else
+      table.insert(lines, data)
+    end
+  end
+  
+  -- Process all commands sequentially
+  local function run_commands(index)
+    index = index or 1
+    
+    if index > #commands then
+      -- All commands completed
+      if #lines > 0 then
+        vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
+      end
+      
+      vim.notify("Laravel IDE Helper files generated successfully!", 
+               vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+      
+      -- Restart LSP servers to pick up new definitions
+      vim.schedule(function()
+        vim.cmd("LspRestart")
+        vim.notify("LSP servers restarted to pick up new definitions", 
+                 vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+      end)
+      
+      return
+    end
+    
+    -- Get the current command
+    local cmd = commands[index]
+    vim.notify("Running: " .. cmd, vim.log.levels.INFO)
+    
+    -- Run the command
+    local job_id = vim.fn.jobstart(cmd, {
+      on_stdout = function(_, data)
+        if data then
+          append_to_output(data)
+        end
+      end,
+      on_stderr = function(_, data)
+        if data then
+          append_to_output(data)
+        end
+      end,
+      on_exit = function(_, code)
+        if code == 0 then
+          append_to_output("Command completed successfully")
+          -- Run the next command
+          run_commands(index + 1)
+        else
+          append_to_output("Command failed with exit code: " .. code)
+          vim.notify("Failed to generate IDE Helper files (command " .. index .. 
+                   " exited with code " .. code .. ")",
+                   vim.log.levels.ERROR, { title = "Laravel IDE Helper" })
+        end
+      end
+    })
+    
+    if job_id <= 0 then
+      vim.notify("Failed to start command: " .. cmd, vim.log.levels.ERROR)
+      run_commands(index + 1) -- Try the next command
+    end
+  end
+  
+  -- Start running commands
+  run_commands()
   return true
 end
 
--- Install IDE Helper package (minimal implementation)
+-- Install IDE Helper package with actual functionality
 function M.install_ide_helper()
-  vim.notify("Install IDE Helper called", vim.log.levels.INFO)
+  vim.notify("Installing Laravel IDE Helper...", vim.log.levels.INFO)
   
-  -- For now, just notify about what would happen
   local laravel_root = M.find_laravel_root()
   if not laravel_root then
     vim.notify("Not a Laravel project", vim.log.levels.WARN)
@@ -463,8 +686,84 @@ function M.install_ide_helper()
     return true
   end
   
-  vim.notify("Would install Laravel IDE Helper in project at: " .. laravel_root, 
-           vim.log.levels.INFO, { title = "Laravel IDE Helper" })
+  -- Set up the window for installation output
+  M.show_ide_helper_window("Laravel IDE Helper Installation")
+  
+  -- Use local command or sail based on availability and preferences
+  local use_sail = M.has_sail() and not M.prefer_standard_php(laravel_root)
+  
+  local cmd
+  if use_sail then
+    cmd = "cd " .. vim.fn.shellescape(laravel_root) .. " && ./vendor/bin/sail composer require --dev barryvdh/laravel-ide-helper"
+  else
+    cmd = "cd " .. vim.fn.shellescape(laravel_root) .. " && composer require --dev barryvdh/laravel-ide-helper"
+  end
+  
+  vim.notify("Running: " .. cmd, vim.log.levels.INFO)
+  
+  -- Actually run the command
+  local lines = {}
+  local function append_to_output(data)
+    if type(data) == "table" then
+      for _, line in ipairs(data) do
+        if line and line ~= "" then
+          table.insert(lines, line)
+          if #lines > 100 then -- Prevent showing too many lines at once
+            vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
+            lines = {}
+          end
+        end
+      end
+    else
+      table.insert(lines, data)
+    end
+  end
+  
+  -- Run the command to install IDE Helper
+  local job_id = vim.fn.jobstart(cmd, {
+    on_stdout = function(_, data)
+      if data then
+        append_to_output(data)
+      end
+    end,
+    on_stderr = function(_, data)
+      if data then
+        append_to_output(data)
+      end
+    end,
+    on_exit = function(_, code)
+      if #lines > 0 then
+        vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
+      end
+      
+      if code == 0 then
+        vim.notify("Laravel IDE Helper installed successfully!", vim.log.levels.INFO, 
+                 { title = "Laravel IDE Helper" })
+        
+        -- Ask if they want to generate IDE helper files now
+        vim.schedule(function()
+          local generate_now = vim.fn.confirm(
+            "Laravel IDE Helper installed successfully! Generate helper files now?",
+            "&Yes\n&No",
+            1
+          )
+          
+          if generate_now == 1 then
+            M.generate_ide_helper(true)
+          end
+        end)
+      else
+        vim.notify("Failed to install Laravel IDE Helper (exit code: " .. code .. ")",
+                 vim.log.levels.ERROR, { title = "Laravel IDE Helper" })
+      end
+    end
+  })
+  
+  if job_id <= 0 then
+    vim.notify("Failed to start installation command", vim.log.levels.ERROR)
+    return false
+  end
+  
   return true
 end
 
