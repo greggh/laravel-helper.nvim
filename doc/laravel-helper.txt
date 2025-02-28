@@ -11,12 +11,13 @@ CONTENTS                                     *laravel-helper-contents*
   6. Commands ............................ |laravel-helper-commands|
   7. Functions ........................... |laravel-helper-functions|
   8. Key Mappings ........................ |laravel-helper-mappings|
-  9. License ............................. |laravel-helper-license|
+  9. Contributing ........................ |laravel-helper-contributing|
+ 10. License ............................. |laravel-helper-license|
 
 ==============================================================================
 1. INTRODUCTION                              *laravel-helper-introduction*
 
-Laravel Helper is a Neovim plugin that improves the Laravel development 
+Laravel Helper is a very opinionated Neovim plugin that improves the Laravel development 
 experience, with a focus on Laravel IDE Helper integration. It provides 
 automatic detection of Laravel projects, IDE Helper integration with support 
 for PHP and Laravel Sail, automatic installation and generation of IDE Helper 
@@ -201,7 +202,14 @@ Laravel Helper doesn't set any key mappings by default. You can set your own:
 <
 
 ==============================================================================
-9. LICENSE                                   *laravel-helper-license*
+9. CONTRIBUTING                               *laravel-helper-contributing*
+
+Contributions to Laravel Helper are welcome! If you would like to contribute,
+please check the CONTRIBUTING.md file in the repository for guidelines:
+https://github.com/greggh/laravel-helper.nvim/blob/main/CONTRIBUTING.md
+
+==============================================================================
+10. LICENSE                                   *laravel-helper-license*
 
 MIT
 

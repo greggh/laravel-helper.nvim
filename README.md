@@ -187,6 +187,10 @@ vim.api.nvim_create_autocmd("FileType", {
 - `with_sail_or_php(command)`: Run a command using Sail when available, falling back to PHP
 - `get_sail_or_php_command(command)`: Get the command string to run with either Sail or standard PHP
 
+## Contributing
+
+Contributions are welcome! Please check out our [contribution guidelines](CONTRIBUTING.md) for details on how to get started.
+
 ## License
 
 MIT
