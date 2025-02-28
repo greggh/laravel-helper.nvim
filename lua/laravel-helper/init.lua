@@ -17,7 +17,7 @@ M.core = nil
 ---@return boolean
 function M.is_laravel_project()
   -- Lazily load core module when needed
-  if not M.core then 
+  if not M.core then
     M.core = require("laravel-helper.core")
   end
   return M.core.find_laravel_root() ~= nil
@@ -29,32 +29,32 @@ end
 function M.setup(user_config)
   -- Load version information
   M.version = require("laravel-helper.version")
-  
+
   -- Load and validate configuration
   local config_module = require("laravel-helper.config")
   local config, is_valid, error_message = config_module.merge(user_config)
-  
+
   if not is_valid then
     vim.notify("Laravel Helper: " .. error_message, vim.log.levels.ERROR)
     return M
   end
-  
+
   -- Store validated config
   M.config = config
-  
+
   -- Lazily load core module
   if not M.core then
     M.core = require("laravel-helper.core")
   end
-  
+
   -- Initialize the core functionality
   M.core.setup(M.config)
-  
+
   -- If auto-detect is enabled, set up BufEnter autocmd
   if M.config.auto_detect then
     M.setup_auto_detection()
   end
-  
+
   -- Only setup commands if mega.cmdparse is available
   local has_mega_cmdparse, _ = pcall(require, "mega.cmdparse")
   if has_mega_cmdparse then
@@ -64,22 +64,23 @@ function M.setup(user_config)
   else
     -- Fall back to old command structure
     M.core.setup_auto_ide_helper()
-    
+
     -- Warn the user about missing mega.cmdparse
     vim.notify(
       string.format(
-        "Laravel Helper v%s: mega.cmdparse not found. Using legacy commands. Install ColinKennedy/mega.cmdparse for enhanced command experience.",
+        "Laravel Helper v%s: mega.cmdparse not found. Using legacy commands. " ..
+        "Install ColinKennedy/mega.cmdparse for enhanced command experience.",
         M.version.string()
       ),
       vim.log.levels.WARN
     )
   end
-  
+
   -- Log plugin initialization
   if vim.fn.exists("*luapad#log") == 1 then
     vim.fn['luapad#log'](string.format("Laravel Helper v%s initialized", M.version.string()))
   end
-  
+
   return M
 end
 
@@ -95,7 +96,7 @@ function M.setup_auto_detection()
   if not vim.g.laravel_ide_helper_checked then
     vim.g.laravel_ide_helper_checked = {}
   end
-  
+
   vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "*.php",
     callback = function()
@@ -153,7 +154,7 @@ function M.run_artisan_command(command)
     end)
     return
   end
-  
+
   -- If command was provided, pass it directly to core
   return M.core.run_artisan_command(command)
 end

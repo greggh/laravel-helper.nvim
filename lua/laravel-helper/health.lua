@@ -54,7 +54,7 @@ function M.check()
     if core.is_laravel_project() then
         local root = core.find_laravel_root()
         ok("Current project is a Laravel project: " .. root)
-        
+
         -- Check if IDE Helper is installed
         if core.is_ide_helper_installed() then
             ok("Laravel IDE Helper is installed")
@@ -63,7 +63,7 @@ function M.check()
                 "Run :Laravel ide-helper install to install it",
             })
         end
-        
+
         -- Check if Sail is available
         if core.has_sail() then
             ok("Laravel Sail is available")

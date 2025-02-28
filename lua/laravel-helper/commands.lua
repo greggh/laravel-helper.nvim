@@ -18,26 +18,26 @@ function M.setup_commands()
     local core = require("laravel-helper.core") -- Use existing core module
 
     -- Create the main Laravel command parser
-    local parser = cmdparse.ParameterParser.new({ 
-        name = "Laravel", 
+    local parser = cmdparse.ParameterParser.new({
+        name = "Laravel",
         help = "Laravel helper commands for Neovim"
     })
 
     -- Add subparsers for different command categories
-    local subparsers = parser:add_subparsers({ 
-        destination = "command", 
+    local subparsers = parser:add_subparsers({
+        destination = "command",
         help = "Laravel helper commands"
     })
 
     -- Artisan subcommand
-    local artisan = subparsers:add_parser({ 
-        name = "artisan", 
-        help = "Run Laravel Artisan commands" 
+    local artisan = subparsers:add_parser({
+        name = "artisan",
+        help = "Run Laravel Artisan commands"
     })
-    artisan:add_parameter({ 
-        name = "args", 
-        nargs = "*", 
-        help = "Arguments to pass to Artisan" 
+    artisan:add_parameter({
+        name = "args",
+        nargs = "*",
+        help = "Arguments to pass to Artisan"
     })
     artisan:set_execute(function(data)
         local args = data.namespace.args or {}
@@ -50,9 +50,9 @@ function M.setup_commands()
     end)
 
     -- IDE Helper subcommands
-    local ide_helper = subparsers:add_parser({ 
-        name = "ide-helper", 
-        help = "Laravel IDE Helper commands" 
+    local ide_helper = subparsers:add_parser({
+        name = "ide-helper",
+        help = "Laravel IDE Helper commands"
     })
     local ide_helper_subparsers = ide_helper:add_subparsers({
         destination = "ide_helper_command",
@@ -97,7 +97,7 @@ function M.setup_commands()
 
     -- Register the command
     cmdparse.create_user_command(parser)
-    
+
     -- For backward compatibility, add the old command aliases that redirect to the new ones
     -- These will help users transition to the new command structure
     vim.api.nvim_create_user_command("LaravelGenerateIDEHelper", function(opts)
@@ -105,17 +105,20 @@ function M.setup_commands()
         local cmd = use_sail and "Laravel ide-helper generate --use-sail" or "Laravel ide-helper generate"
         vim.api.nvim_command(cmd)
         vim.notify("Note: This command is deprecated. Please use '" .. cmd .. "' instead.", vim.log.levels.WARN)
-    end, { 
-        desc = "Generate Laravel IDE Helper files (deprecated, use :Laravel ide-helper generate)", 
-        nargs = "?", 
-        complete = function() return { "php", "sail" } end 
+    end, {
+        desc = "Generate Laravel IDE Helper files (deprecated, use :Laravel ide-helper generate)",
+        nargs = "?",
+        complete = function() return { "php", "sail" } end
     })
 
     vim.api.nvim_create_user_command("LaravelInstallIDEHelper", function()
         vim.api.nvim_command("Laravel ide-helper install")
-        vim.notify("Note: This command is deprecated. Please use ':Laravel ide-helper install' instead.", vim.log.levels.WARN)
-    end, { 
-        desc = "Install Laravel IDE Helper package (deprecated, use :Laravel ide-helper install)" 
+        vim.notify(
+          "Note: This command is deprecated. Please use ':Laravel ide-helper install' instead.", 
+          vim.log.levels.WARN
+        )
+    end, {
+        desc = "Install Laravel IDE Helper package (deprecated, use :Laravel ide-helper install)"
     })
 
     vim.api.nvim_create_user_command("LaravelArtisan", function(opts)
@@ -123,17 +126,20 @@ function M.setup_commands()
         local cmd = "Laravel artisan " .. args
         vim.api.nvim_command(cmd)
         vim.notify("Note: This command is deprecated. Please use '" .. cmd .. "' instead.", vim.log.levels.WARN)
-    end, { 
-        desc = "Run Laravel Artisan command (deprecated, use :Laravel artisan)", 
-        nargs = "?", 
-        complete = "file" 
+    end, {
+        desc = "Run Laravel Artisan command (deprecated, use :Laravel artisan)",
+        nargs = "?",
+        complete = "file"
     })
 
     vim.api.nvim_create_user_command("LaravelIDEHelperToggleDebug", function()
         vim.api.nvim_command("Laravel ide-helper debug")
-        vim.notify("Note: This command is deprecated. Please use ':Laravel ide-helper debug' instead.", vim.log.levels.WARN)
-    end, { 
-        desc = "Toggle Laravel IDE Helper debug mode (deprecated, use :Laravel ide-helper debug)" 
+        vim.notify(
+          "Note: This command is deprecated. Please use ':Laravel ide-helper debug' instead.", 
+          vim.log.levels.WARN
+        )
+    end, {
+        desc = "Toggle Laravel IDE Helper debug mode (deprecated, use :Laravel ide-helper debug)"
     })
 end
 
