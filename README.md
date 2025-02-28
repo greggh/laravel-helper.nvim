@@ -3,7 +3,7 @@
 > ⚠️ **WARNING: PRE-ALPHA SOFTWARE** ⚠️  
 > This plugin is in very early development (first commit, day one). It is currently in the "it works on my machine" phase and has not been thoroughly tested across different environments. Use at your own risk.
 
-A Neovim plugin for Laravel development, with focus on Laravel IDE Helper integration.
+A very opinionated Neovim plugin for Laravel development, with focus on Laravel IDE Helper integration.
 
 ## Goals
 
