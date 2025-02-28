@@ -8,8 +8,7 @@ DOC_PATH ?= doc/
 # Test command
 test:
 	@echo "Running tests..."
-	@nvim --headless --noplugin -u test/minimal.vim -c "lua print('Running basic tests')" -c "source test/basic_test.vim" -c "qa!" || \
-	(echo "Tests failed but continuing"; exit 0)
+	@nvim --headless --noplugin -u test/minimal.vim -c "lua print('Running basic tests')" -c "source test/basic_test.vim" -c "qa!"
 
 # Debug test command - more verbose output
 test-debug:
@@ -19,8 +18,7 @@ test-debug:
 	@which nvim
 	@nvim --version
 	@echo "Testing with basic checks..."
-	@nvim --headless --noplugin -u test/minimal.vim -c "lua print('Lua is working')" -c "source test/basic_test.vim" -c "qa!" || \
-	(echo "Tests failed but continuing"; exit 0)
+	@nvim --headless --noplugin -u test/minimal.vim -c "lua print('Lua is working')" -c "source test/basic_test.vim" -c "qa!"
 
 # Lint Lua files
 lint:

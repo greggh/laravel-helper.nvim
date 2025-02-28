@@ -75,4 +75,4 @@ jobs:
       
       - name: Run tests
         run: |
-          make test-debug || echo "Tests currently being developed - will be fixed in a future update"
+          make test-debug
