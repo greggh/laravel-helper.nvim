@@ -9,6 +9,7 @@ DOC_PATH ?= doc/
 test:
 	@echo "Running tests..."
 	@nvim --headless --noplugin -u test/minimal.vim -c "lua print('Running basic tests')" -c "source test/basic_test.vim" -c "qa!"
+	@nvim --headless --noplugin -u test/minimal.vim -c "lua print('Running config tests')" -c "source test/config_test.vim" -c "qa!"
 
 # Debug test command - more verbose output
 test-debug:
@@ -19,6 +20,17 @@ test-debug:
 	@nvim --version
 	@echo "Testing with basic checks..."
 	@nvim --headless --noplugin -u test/minimal.vim -c "lua print('Lua is working')" -c "source test/basic_test.vim" -c "qa!"
+	@echo "Testing with config module checks..."
+	@nvim --headless --noplugin -u test/minimal.vim -c "lua print('Lua is working')" -c "source test/config_test.vim" -c "qa!"
+
+# Individual test commands
+test-basic:
+	@echo "Running basic tests..."
+	@nvim --headless --noplugin -u test/minimal.vim -c "source test/basic_test.vim" -c "qa!"
+
+test-config:
+	@echo "Running config tests..."
+	@nvim --headless --noplugin -u test/minimal.vim -c "source test/config_test.vim" -c "qa!"
 
 # Lint Lua files
 lint:
@@ -45,10 +57,12 @@ all: lint format test docs
 
 help:
 	@echo "Laravel Helper development commands:"
-	@echo "  make test       - Run tests"
-	@echo "  make test-debug - Run tests with debug output"
-	@echo "  make lint       - Lint Lua files"
-	@echo "  make format     - Format Lua files with stylua"
-	@echo "  make docs       - Generate documentation"
-	@echo "  make clean      - Remove generated files"
-	@echo "  make all        - Run lint, format, test, and docs"
+	@echo "  make test         - Run all tests"
+	@echo "  make test-debug   - Run all tests with debug output"
+	@echo "  make test-basic   - Run only basic functionality tests"
+	@echo "  make test-config  - Run only configuration tests"
+	@echo "  make lint         - Lint Lua files"
+	@echo "  make format       - Format Lua files with stylua"
+	@echo "  make docs         - Generate documentation"
+	@echo "  make clean        - Remove generated files"
+	@echo "  make all          - Run lint, format, test, and docs"

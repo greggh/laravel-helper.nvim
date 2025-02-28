@@ -1,5 +1,7 @@
 # Laravel-Helper.nvim
 
+[![CI](https://github.com/greggh/laravel-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/greggh/laravel-helper/actions/workflows/ci.yml)
+
 > ⚠️ **WARNING: PRE-ALPHA SOFTWARE** ⚠️  
 > This plugin is in very early development (first commit, day one). It is currently in the "it works on my machine" phase and has not been thoroughly tested across different environments. Use at your own risk.
 

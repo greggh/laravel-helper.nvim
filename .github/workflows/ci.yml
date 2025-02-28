@@ -20,6 +20,14 @@ jobs:
       - name: Install LuaRocks
         uses: leafo/gh-actions-luarocks@v4
       
+      - name: Cache LuaRocks dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.luarocks
+          key: ${{ runner.os }}-luarocks-${{ hashFiles('**/*.rockspec') }}
+          restore-keys: |
+            ${{ runner.os }}-luarocks-
+      
       - name: Install luacheck
         run: luarocks install luacheck
       
@@ -35,6 +43,12 @@ jobs:
   
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        neovim-version: [v0.8.0, v0.9.0, stable, nightly]
+    
+    name: Test with Neovim ${{ matrix.neovim-version }}
     steps:
       - uses: actions/checkout@v3
       
@@ -42,7 +56,7 @@ jobs:
         uses: rhysd/action-setup-vim@v1
         with:
           neovim: true
-          version: v0.8.0
+          version: ${{ matrix.neovim-version }}
       
       - name: Install Lua
         uses: leafo/gh-actions-lua@v9
@@ -51,6 +65,22 @@ jobs:
       
       - name: Install LuaRocks
         uses: leafo/gh-actions-luarocks@v4
+      
+      - name: Cache LuaRocks dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.luarocks
+          key: ${{ runner.os }}-luarocks-${{ hashFiles('**/*.rockspec') }}-${{ matrix.neovim-version }}
+          restore-keys: |
+            ${{ runner.os }}-luarocks-
+      
+      - name: Cache plugin dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.local/share/nvim/site/pack
+          key: ${{ runner.os }}-nvim-plugins-${{ hashFiles('**/Makefile') }}-${{ matrix.neovim-version }}
+          restore-keys: |
+            ${{ runner.os }}-nvim-plugins-
       
       - name: Install test dependencies
         run: |
@@ -73,6 +103,38 @@ jobs:
           echo "LUA_CPATH='$(luarocks path --lr-cpath)'" >> $GITHUB_ENV
           busted --version
       
+      - name: Display Neovim version
+        run: nvim --version
+      
       - name: Run tests
         run: |
           make test-debug
+  
+  documentation:
+    needs: [lint, test]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Lua
+        uses: leafo/gh-actions-lua@v9
+        with:
+          luaVersion: "5.1"
+      
+      - name: Install LuaRocks
+        uses: leafo/gh-actions-luarocks@v4
+      
+      - name: Cache LuaRocks dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.luarocks
+          key: ${{ runner.os }}-luarocks-docs-${{ hashFiles('**/*.rockspec') }}
+          restore-keys: |
+            ${{ runner.os }}-luarocks-docs-
+      
+      - name: Install ldoc
+        run: luarocks install ldoc
+      
+      - name: Generate documentation
+        run: make docs
