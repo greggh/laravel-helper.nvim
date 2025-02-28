@@ -14,16 +14,16 @@ The primary goal of this plugin is to create a unified Laravel development exper
 - Providing sensible defaults while allowing customization
 
 Projects we aim to integrate with include:
-- blade-nav.nvim - Blade syntax highlighting and navigation
-- blade-formatter - Code formatting for Blade templates
-- laravel.nvim - Laravel-specific utilities
-- tree-sitter-blade - Enhanced Blade syntax parsing
-- tailwind-tools.nvim - Tailwind CSS integration
-- nvim-dap with php-debug-adapter - Debugging support
-- conform.nvim setup for Pint and php-cs-fixer - Code formatting
-- neotest-pest - Testing framework integration
-- LuaSnip - Laravel-specific snippets
-- Support for both Intelephense and phpactor LSPs
+- [blade-nav.nvim](https://github.com/Dkendal/blade-nav.nvim) - Blade syntax highlighting and navigation
+- [blade-formatter](https://github.com/shufo/blade-formatter) - Code formatting for Blade templates
+- [laravel.nvim](https://github.com/adalessa/laravel.nvim) - Laravel-specific utilities
+- [tree-sitter-blade](https://github.com/EmranMR/tree-sitter-blade) - Enhanced Blade syntax parsing
+- [tailwind-tools.nvim](https://github.com/jcha0713/tailwind-tools.nvim) - Tailwind CSS integration
+- [nvim-dap](https://github.com/mfussenegger/nvim-dap) with [php-debug-adapter](https://github.com/xdebug/vscode-php-debug) - Debugging support
+- [conform.nvim](https://github.com/stevearc/conform.nvim) setup for [Pint](https://github.com/laravel/pint) and [php-cs-fixer](https://github.com/PHP-CS-Fixer/PHP-CS-Fixer) - Code formatting
+- [neotest-pest](https://github.com/V13Axel/neotest-pest) - Testing framework integration
+- [LuaSnip](https://github.com/L3MON4D3/LuaSnip) - Laravel-specific snippets
+- Support for both [Intelephense](https://github.com/bmewburn/intelephense-docs) and [phpactor](https://github.com/phpactor/phpactor) LSPs
 
 ## Features
 
