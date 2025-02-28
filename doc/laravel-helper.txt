@@ -26,8 +26,34 @@ files, Artisan command integration, and more.
 2. REQUIREMENTS                              *laravel-helper-requirements*
 
 - Neovim >= 0.10.0
-- nui.nvim (https://github.com/MunifTanjim/nui.nvim)
 - PHP installed locally, or Laravel Sail configured
+- Required plugins:
+  - lazy.nvim - Plugin manager
+  - nui.nvim - UI components
+  - plenary.nvim - Lua utilities
+  - nvim-nio - Async IO
+  - nvim-lspconfig - LSP configuration
+  - mason.nvim - Package manager
+  - mason-lspconfig.nvim - Mason LSP integration
+  - mason-tool-installer - Tool installer
+  - nvim-treesitter - Syntax parsing
+  - nvim-ts-autotag - Auto close/rename tags
+  - nvim-treesitter-context - Code context
+  - nvim-treesitter-textobjects - Text objects
+  - conform.nvim - Code formatting
+  - nvim-lint - Linting
+  - nvim-dap - Debug adapter
+  - nvim-dap-ui - Debug UI
+  - nvim-dap-virtual-text - Debug virtual text
+  - neotest - Testing framework
+  - neotest-plenary - Plenary test adapter
+  - neotest-pest - Pest test adapter
+  - LuaSnip - Snippet engine
+  - friendly-snippets - Snippet collection
+  - blink.cmp - Blink CMP integration
+  - blink.compat - Blink compatibility
+  - blink-ripgrep.nvim - Blink ripgrep integration
+  - cmp-cmdline-history - Command line history
 
 ==============================================================================
 3. INSTALLATION                              *laravel-helper-installation*
@@ -37,9 +63,34 @@ Using lazy.nvim:
     {
       "greggh/laravel-helper.nvim",
       dependencies = {
+        "folke/lazy.nvim",
         "MunifTanjim/nui.nvim",
+        "nvim-lua/plenary.nvim",
+        "nvim-neotest/nvim-nio",
+        "neovim/nvim-lspconfig",
+        "williamboman/mason.nvim",
+        "williamboman/mason-lspconfig.nvim",
+        "WhoIsSethDaniel/mason-tool-installer",
+        "nvim-treesitter/nvim-treesitter",
+        "windwp/nvim-ts-autotag",
+        "nvim-treesitter/nvim-treesitter-context",
+        "nvim-treesitter/nvim-treesitter-textobjects",
+        "stevearc/conform.nvim",
+        "mfussenegger/nvim-lint",
+        "mfussenegger/nvim-dap",
+        "rcarriga/nvim-dap-ui",
+        "theHamsta/nvim-dap-virtual-text",
+        "nvim-neotest/neotest",
+        "nvim-neotest/neotest-plenary",
+        "V13Axel/neotest-pest",
+        "L3MON4D3/LuaSnip",
+        "rafamidriz/friendly-snippets",
+        "saghen/blink.cmp",
+        "saghen/blink.compat",
+        "mikavilpas/blink-ripgrep.nvim",
+        "dmitmel/cmp-cmdline-history",
       },
-      ft = { "php" },
+      ft = { "php", "blade" },
       config = function()
         require("laravel-helper").setup({
           -- Optional configuration options

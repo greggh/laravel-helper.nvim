@@ -37,8 +37,34 @@ Projects we aim to integrate with include:
 ## Requirements
 
 - Neovim >= 0.10.0
-- [nui.nvim](https://github.com/MunifTanjim/nui.nvim) for the UI components
 - PHP installed locally, or Laravel Sail configured
+- Required plugins:
+  - [lazy.nvim](https://github.com/folke/lazy.nvim) - Plugin manager
+  - [nui.nvim](https://github.com/MunifTanjim/nui.nvim) - UI components
+  - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) - Lua utilities
+  - [nvim-nio](https://github.com/nvim-neotest/nvim-nio) - Async IO
+  - [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) - LSP configuration
+  - [mason.nvim](https://github.com/williamboman/mason.nvim) - Package manager
+  - [mason-lspconfig.nvim](https://github.com/williamboman/mason-lspconfig.nvim) - Mason LSP integration
+  - [mason-tool-installer](https://github.com/WhoIsSethDaniel/mason-tool-installer) - Tool installer
+  - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - Syntax parsing
+  - [nvim-ts-autotag](https://github.com/windwp/nvim-ts-autotag) - Auto close/rename tags
+  - [nvim-treesitter-context](https://github.com/nvim-treesitter/nvim-treesitter-context) - Code context
+  - [nvim-treesitter-textobjects](https://github.com/nvim-treesitter/nvim-treesitter-textobjects) - Text objects
+  - [conform.nvim](https://github.com/stevearc/conform.nvim) - Code formatting
+  - [nvim-lint](https://github.com/mfussenegger/nvim-lint) - Linting
+  - [nvim-dap](https://github.com/mfussenegger/nvim-dap) - Debug adapter
+  - [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) - Debug UI
+  - [nvim-dap-virtual-text](https://github.com/theHamsta/nvim-dap-virtual-text) - Debug virtual text
+  - [neotest](https://github.com/nvim-neotest/neotest) - Testing framework
+  - [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary) - Plenary test adapter
+  - [neotest-pest](https://github.com/V13Axel/neotest-pest) - Pest test adapter
+  - [LuaSnip](https://github.com/L3MON4D3/LuaSnip) - Snippet engine
+  - [friendly-snippets](https://github.com/rafamidriz/friendly-snippets) - Snippet collection
+  - [blink.cmp](https://github.com/saghen/blink.cmp) - Blink CMP integration
+  - [blink.compat](https://github.com/saghen/blink.compat) - Blink compatibility
+  - [blink-ripgrep.nvim](https://github.com/mikavilpas/blink-ripgrep.nvim) - Blink ripgrep integration
+  - [cmp-cmdline-history](https://github.com/dmitmel/cmp-cmdline-history) - Command line history
 
 ## Installation
 
@@ -48,9 +74,34 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 {
   "greggh/laravel-helper.nvim",
   dependencies = {
+    "folke/lazy.nvim",
     "MunifTanjim/nui.nvim",
+    "nvim-lua/plenary.nvim",
+    "nvim-neotest/nvim-nio",
+    "neovim/nvim-lspconfig",
+    "williamboman/mason.nvim",
+    "williamboman/mason-lspconfig.nvim",
+    "WhoIsSethDaniel/mason-tool-installer",
+    "nvim-treesitter/nvim-treesitter",
+    "windwp/nvim-ts-autotag",
+    "nvim-treesitter/nvim-treesitter-context",
+    "nvim-treesitter/nvim-treesitter-textobjects",
+    "stevearc/conform.nvim",
+    "mfussenegger/nvim-lint",
+    "mfussenegger/nvim-dap",
+    "rcarriga/nvim-dap-ui",
+    "theHamsta/nvim-dap-virtual-text",
+    "nvim-neotest/neotest",
+    "nvim-neotest/neotest-plenary",
+    "V13Axel/neotest-pest",
+    "L3MON4D3/LuaSnip",
+    "rafamidriz/friendly-snippets",
+    "saghen/blink.cmp",
+    "saghen/blink.compat",
+    "mikavilpas/blink-ripgrep.nvim",
+    "dmitmel/cmp-cmdline-history",
   },
-  ft = { "php" },
+  ft = { "php", "blade" },
   config = function()
     require("laravel-helper").setup({
       -- Optional configuration options
