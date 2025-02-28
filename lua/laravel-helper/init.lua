@@ -66,8 +66,8 @@ function M.install_ide_helper()
 end
 
 -- Generate IDE Helper files in the current project
-function M.generate_ide_helper(force)
-  return M.core.generate_ide_helper(force)
+function M.generate_ide_helper(force, use_sail)
+  return M.core.generate_ide_helper(force, use_sail)
 end
 
 -- Toggle debug mode

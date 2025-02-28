@@ -1998,7 +1998,8 @@ function M.install_ide_helper()
                         vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
             end
             
-            M.generate_ide_helper(true)
+            -- Pass the sail preference to the generation function to ensure consistency
+            M.generate_ide_helper(true, use_sail)
           end
         end)
       else
@@ -2036,9 +2037,9 @@ function M.install_ide_helper()
 end
 
 -- Generate IDE Helper files
-function M.generate_ide_helper(force)
+function M.generate_ide_helper(force, use_sail_override)
   if M.debug_mode then
-    vim.notify("Starting IDE Helper generation", vim.log.levels.DEBUG)
+    vim.notify("Starting IDE Helper generation with use_sail_override=" .. tostring(use_sail_override), vim.log.levels.DEBUG)
   end
   
   local laravel_root = M.find_laravel_root()
@@ -2128,7 +2129,30 @@ function M.generate_ide_helper(force)
   M.show_ide_helper_window("Laravel IDE Helper Generation")
   
   -- Use local command or sail based on availability and preferences
-  local use_sail = M.has_sail() and not M.prefer_standard_php(laravel_root)
+  local use_sail
+  
+  -- If explicitly specified via parameter, use that
+  if use_sail_override ~= nil then
+    use_sail = use_sail_override
+    if M.debug_mode then
+      vim.notify("Using " .. (use_sail and "Laravel Sail" or "standard PHP") .. " as specified by parameter.", 
+                vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+    end
+  -- Otherwise check if we have a global preference from earlier in the session
+  elseif vim.g.laravel_ide_helper_use_sail ~= nil then
+    use_sail = vim.g.laravel_ide_helper_use_sail
+    if M.debug_mode then
+      vim.notify("Using " .. (use_sail and "Laravel Sail" or "standard PHP") .. " from global state.", 
+                vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+    end
+  -- Default fallback to automatic detection
+  else
+    use_sail = M.has_sail() and not M.prefer_standard_php(laravel_root)
+    if M.debug_mode then
+      vim.notify("Auto-detected use_sail=" .. tostring(use_sail), 
+                vim.log.levels.DEBUG, { title = "Laravel IDE Helper" })
+    end
+  end
   
   -- Commands to run
   local commands = {}
@@ -2486,9 +2510,21 @@ end
 -- Auto-check and generate IDE Helper files
 function M.setup_auto_ide_helper()
   -- Create the command to manually generate IDE helper files
-  vim.api.nvim_create_user_command("LaravelGenerateIDEHelper", function()
-    M.generate_ide_helper(true)
-  end, { desc = "Generate Laravel IDE Helper files" })
+  vim.api.nvim_create_user_command("LaravelGenerateIDEHelper", function(opts)
+    local args = opts.args:gsub("%s+", "")
+    local use_sail
+    
+    if args == "php" then
+      use_sail = false
+    elseif args == "sail" then
+      use_sail = true
+    end
+    
+    -- If mode was specified, use it; otherwise use automatic detection
+    M.generate_ide_helper(true, use_sail)
+  end, { desc = "Generate Laravel IDE Helper files", nargs = "?", complete = function()
+    return { "php", "sail" }
+  end })
   
   -- Create a command to install IDE helper package
   vim.api.nvim_create_user_command("LaravelInstallIDEHelper", function()

@@ -84,7 +84,8 @@ and to generate IDE Helper files if they don't exist.
 
 Laravel Helper provides the following commands:
 
-:LaravelGenerateIDEHelper                Generate Laravel IDE Helper files
+:LaravelGenerateIDEHelper [mode]         Generate Laravel IDE Helper files
+                                        Optional [mode] can be 'php' or 'sail'
 :LaravelInstallIDEHelper                 Install Laravel IDE Helper package
 :LaravelIDEHelperToggleDebug             Toggle debug mode
 :LaravelArtisan [command]                Run Laravel Artisan command
