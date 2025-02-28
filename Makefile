@@ -8,7 +8,7 @@ DOC_PATH ?= doc/
 # Test command
 test:
 	@echo "Running tests..."
-	@nvim --headless --noplugin -u test/minimal.vim -c "lua require('busted.runner')({ standalone = false, pattern = '_spec.lua$$' })" -c "q" || \
+	@nvim --headless --noplugin -u test/minimal.vim -c "lua require('busted.runner')({ standalone = false, pattern = '_spec.lua$$', coverage = false })" -c "qa!" || \
 	(echo "Tests failed"; exit 1)
 
 # Lint Lua files

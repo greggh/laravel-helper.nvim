@@ -20,6 +20,11 @@ lua << EndOfLua
 vim.opt.runtimepath:append(vim.fn.getcwd())
 vim.opt.runtimepath:append(vim.fn.getcwd() .. "/spec")
 
+-- Make sure we can find busted
+vim.opt.runtimepath:append("/usr/local/share/lua/5.1")
+vim.opt.runtimepath:append("/usr/share/lua/5.1")
+vim.opt.runtimepath:append(vim.fn.expand("~/.luarocks/share/lua/5.1"))
+
 -- Required for testing
 require('laravel-helper')
 EndOfLua

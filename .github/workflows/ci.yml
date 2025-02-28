@@ -52,10 +52,12 @@ jobs:
       - name: Install LuaRocks
         uses: leafo/gh-actions-luarocks@v4
       
-      - name: Install busted and luassert
+      - name: Install test dependencies
         run: |
           luarocks install busted
           luarocks install luassert
+          luarocks install luacov
+          git clone https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim || true
       
       - name: Run tests
-        run: make test || echo "Tests currently being developed"
+        run: make test

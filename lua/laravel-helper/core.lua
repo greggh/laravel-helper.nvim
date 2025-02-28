@@ -2678,8 +2678,8 @@ function M.check_laravel_project()
           "declined",
           "Would you like to remember this choice for this Laravel project?\n"
             .. "This will prevent future file generation prompts.",
-          "Preference saved in .nvim-helper.",
-          "To enable generation prompts again, edit 'ide_helper_generate=declined' to 'prompt'."
+          "Preference saved in .nvim-helper.\n"
+            .. "To enable generation prompts again, edit 'ide_helper_generate=declined' to 'prompt'."
         )
       end
     end
