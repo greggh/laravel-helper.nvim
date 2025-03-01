@@ -19,7 +19,19 @@ _G.TEST_RESULTS = {
   failures = 0,
   successes = 0,
   errors = 0,
+  last_error = nil,
 }
+
+-- Silence vim.notify during tests to prevent output pollution
+local original_notify = vim.notify
+vim.notify = function(msg, level, opts)
+  -- Capture the message for debugging but don't display it
+  if level == vim.log.levels.ERROR then
+    _G.TEST_RESULTS.last_error = msg
+  end
+  -- Return silently to avoid polluting test output
+  return nil
+end
 
 -- Hook into plenary's test reporter
 local busted = require("plenary.busted")
@@ -116,7 +128,13 @@ local function run_tests()
   print("Successes: " .. _G.TEST_RESULTS.successes)
   print("Failures: " .. _G.TEST_RESULTS.failures)
   print("Errors: " .. _G.TEST_RESULTS.errors)
+  if _G.TEST_RESULTS.last_error then
+    print("Last Error: " .. _G.TEST_RESULTS.last_error)
+  end
   print("=====================")
+
+  -- Restore original notify function
+  vim.notify = original_notify
 
   if _G.TEST_RESULTS.failures > 0 or _G.TEST_RESULTS.errors > 0 then
     print("\nSome tests failed!")
