@@ -71,10 +71,10 @@ describe("Laravel Helper", function()
 
     package.loaded["laravel-helper.version"] = {
       major = 0,
-      minor = 2,
+      minor = 3,
       patch = 0,
       string = function()
-        return "0.2.0"
+        return "0.3.0"
       end,
     }
 
@@ -102,9 +102,9 @@ describe("Laravel Helper", function()
     it("has a semantic version", function()
       assert.is_not_nil(laravel_helper.version)
       assert.equals(0, laravel_helper.version.major)
-      assert.equals(2, laravel_helper.version.minor)
+      assert.equals(3, laravel_helper.version.minor)
       assert.equals(0, laravel_helper.version.patch)
-      assert.equals("0.2.0", laravel_helper.version.string())
+      assert.equals("0.3.0", laravel_helper.version.string())
     end)
   end)
 
