@@ -14,11 +14,38 @@ local function run_tests()
 
   print("Running tests from directory: " .. spec_dir)
 
-  -- Run the tests
-  plenary_busted.run(spec_dir)
+  -- Find all test files
+  local test_files = vim.fn.glob(spec_dir .. "*_spec.lua", false, true)
+  if #test_files == 0 then
+    print("No test files found in " .. spec_dir)
+    vim.cmd("qa!")
+    return
+  end
 
-  -- Exit when done
-  vim.cmd("qa!")
+  print("Found " .. #test_files .. " test files:")
+  for _, file in ipairs(test_files) do
+    print("  - " .. vim.fn.fnamemodify(file, ":t"))
+  end
+
+  -- Run each test file individually
+  local failures = 0
+  for _, file in ipairs(test_files) do
+    print("\nRunning tests in: " .. vim.fn.fnamemodify(file, ":t"))
+    local status, err = pcall(dofile, file)
+    if not status then
+      print("Error running tests: " .. err)
+      failures = failures + 1
+    end
+  end
+
+  -- Report results
+  if failures > 0 then
+    print("\n" .. failures .. " test files failed!")
+    vim.cmd("cq") -- Exit with error code
+  else
+    print("\nAll test files passed!")
+    vim.cmd("qa!") -- Exit with success
+  end
 end
 
 run_tests()
