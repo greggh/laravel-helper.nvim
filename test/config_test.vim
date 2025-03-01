@@ -5,15 +5,10 @@ echo "Config test started"
 
 " Check if we can load the plugin
 lua << EOF
+-- Use a no-color version for CI to avoid ANSI codes in output
 local function colored(msg, color)
-  local colors = {
-    red = "\27[31m",
-    green = "\27[32m",
-    yellow = "\27[33m",
-    blue = "\27[34m",
-    reset = "\27[0m"
-  }
-  return (colors[color] or "") .. msg .. colors.reset
+  -- Don't add color codes in CI environment
+  return msg
 end
 
 -- Test setup
@@ -78,7 +73,10 @@ local validation_tests = {
       auto_detect = false,
       docker_timeout = 120000,
       prefer_sail = false,
-      commands = {"test1", "test2"}
+      commands = {"test1", "test2"},
+      keymaps = {
+        window_navigation = true
+      }
     },
     should_pass = true
   },
@@ -88,7 +86,10 @@ local validation_tests = {
       auto_detect = "yes",  -- String instead of boolean
       docker_timeout = 120000,
       prefer_sail = false,
-      commands = {"test1", "test2"}
+      commands = {"test1", "test2"},
+      keymaps = {
+        window_navigation = true
+      }
     },
     should_pass = false
   },
@@ -98,7 +99,10 @@ local validation_tests = {
       auto_detect = true,
       docker_timeout = "120000",  -- String instead of number
       prefer_sail = false,
-      commands = {"test1", "test2"}
+      commands = {"test1", "test2"},
+      keymaps = {
+        window_navigation = true
+      }
     },
     should_pass = false
   },
@@ -108,7 +112,10 @@ local validation_tests = {
       auto_detect = true,
       docker_timeout = -1,  -- Negative number
       prefer_sail = false,
-      commands = {"test1", "test2"}
+      commands = {"test1", "test2"},
+      keymaps = {
+        window_navigation = true
+      }
     },
     should_pass = false
   },
@@ -118,7 +125,10 @@ local validation_tests = {
       auto_detect = true,
       docker_timeout = 120000,
       prefer_sail = false,
-      commands = "test1,test2"  -- String instead of table
+      commands = "test1,test2",  -- String instead of table
+      keymaps = {
+        window_navigation = true
+      }
     },
     should_pass = false
   },
@@ -128,7 +138,23 @@ local validation_tests = {
       auto_detect = true,
       docker_timeout = 120000,
       prefer_sail = false,
-      commands = {"test1", 123}  -- Number instead of string
+      commands = {"test1", 123},  -- Number instead of string
+      keymaps = {
+        window_navigation = true
+      }
+    },
+    should_pass = false
+  },
+  {
+    name = "Invalid window_navigation (not a boolean)",
+    config = {
+      auto_detect = true,
+      docker_timeout = 120000,
+      prefer_sail = false,
+      commands = {"test1", "test2"},
+      keymaps = {
+        window_navigation = "yes"  -- String instead of boolean
+      }
     },
     should_pass = false
   }
@@ -163,19 +189,44 @@ local merge_tests = {
   },
   {
     name = "Merge with custom auto_detect",
-    user_config = { auto_detect = false },
-    expected_changes = { auto_detect = false },
+    user_config = { 
+      auto_detect = false,
+      keymaps = {
+        window_navigation = true
+      }
+    },
+    expected_changes = { 
+      auto_detect = false,
+      keymaps = {
+        window_navigation = true
+      }
+    },
     should_pass = true
   },
   {
     name = "Merge with custom commands",
-    user_config = { commands = {"custom1", "custom2"} },
-    expected_changes = { commands = {"custom1", "custom2"} },
+    user_config = { 
+      commands = {"custom1", "custom2"},
+      keymaps = {
+        window_navigation = true
+      }
+    },
+    expected_changes = { 
+      commands = {"custom1", "custom2"},
+      keymaps = {
+        window_navigation = true
+      }
+    },
     should_pass = true
   },
   {
     name = "Merge with invalid config",
-    user_config = { auto_detect = "yes" },
+    user_config = { 
+      auto_detect = "yes",
+      keymaps = {
+        window_navigation = true
+      }
+    },
     should_pass = false
   }
 }

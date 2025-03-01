@@ -10,16 +10,10 @@ print("Looking for modules...")
 print("Package path: " .. package.path)
 print("Runtime path: " .. vim.o.runtimepath)
 
--- Helper function for colored output
+-- Use a no-color version for CI to avoid ANSI codes in output
 local function colored(msg, color)
-  local colors = {
-    red = "\27[31m",
-    green = "\27[32m",
-    yellow = "\27[33m",
-    blue = "\27[34m",
-    reset = "\27[0m"
-  }
-  return (colors[color] or "") .. msg .. colors.reset
+  -- Don't add color codes in CI environment
+  return msg
 end
 
 print(colored("Attempting to load laravel-helper module...", "blue"))
