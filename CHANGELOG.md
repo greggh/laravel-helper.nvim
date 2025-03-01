@@ -11,10 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive test suite with proper error reporting
 - GitHub Actions workflow for continuous integration
 - Pre-commit hooks for code quality
+- Development guide with cross-platform tool installation instructions
+- GitHub Sponsors and Ko-fi funding links
 
 ### Changed
 - Improved error handling and module loading approach
 - Enhanced code organization
+- Updated contributing guidelines with development setup information
+- Better README documentation with development workflow details
 
 ### Fixed
 - Various linting issues in CI workflows
