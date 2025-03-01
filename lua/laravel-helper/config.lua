@@ -13,6 +13,7 @@ local M = {}
 --- @field docker_timeout number Default timeout for Sail/Docker operations (in milliseconds)
 --- @field prefer_sail boolean Whether to automatically use Sail when available
 --- @field commands table Array of commands to run for IDE Helper generation
+--- @field keymaps table Keymap configuration options
 M.defaults = {
   -- Whether to automatically detect Laravel projects and offer IDE Helper generation
   auto_detect = true,
@@ -29,6 +30,11 @@ M.defaults = {
     "ide-helper:models -N", -- PHPDoc generation for models (no write)
     "ide-helper:meta", -- PhpStorm Meta file generation
   },
+
+  -- Keymap configuration
+  keymaps = {
+    window_navigation = true, -- Enable window navigation keymaps
+  },
 }
 
 --- Validate configuration values
@@ -42,6 +48,7 @@ function M.validate(config)
     docker_timeout = { config.docker_timeout, "number" },
     prefer_sail = { config.prefer_sail, "boolean" },
     commands = { config.commands, "table" },
+    keymaps = { config.keymaps, "table" },
   }
 
   local ok, err = pcall(vim.validate, validation_config)
@@ -61,6 +68,13 @@ function M.validate(config)
   -- Additional validation for docker_timeout
   if config.docker_timeout < 0 then
     return false, "Config validation error: docker_timeout must be a positive number"
+  end
+
+  -- Add validation for keymaps.window_navigation if it exists
+  if config.keymaps and config.keymaps.window_navigation ~= nil then
+    if type(config.keymaps.window_navigation) ~= "boolean" then
+      return false, "keymaps.window_navigation must be a boolean"
+    end
   end
 
   return true, nil
