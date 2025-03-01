@@ -135,12 +135,12 @@ luarocks install luacheck
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/neovim-config.git ~/.config/nvim
+   git clone https://github.com/greggh/laravel-helper.nvim.git
    ```
 
 2. Install Git hooks:
    ```bash
-   cd ~/.config/nvim
+   cd laravel-helper.nvim
    ./scripts/setup-hooks.sh
    ```
 

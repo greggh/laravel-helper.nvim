@@ -1,11 +1,8 @@
 # Laravel-Helper.nvim
 
-[![CI](https://github.com/greggh/laravel-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/greggh/laravel-helper/actions/workflows/ci.yml)
+[![CI](https://github.com/greggh/laravel-helper.nvim/actions/workflows/ci.yml/badge.svg)](https://github.com/greggh/laravel-helper.nvim/actions/workflows/ci.yml)
 
-> ⚠️ **WARNING: PRE-ALPHA SOFTWARE** ⚠️  
-> This plugin is in very early development (first commit, day one). It is currently in the "it works on my machine" phase and has not been thoroughly tested across different environments. Use at your own risk.
-
-A very opinionated Neovim plugin for Laravel development, with focus on Laravel IDE Helper integration.
+> A Neovim plugin for Laravel development, with focus on Laravel IDE Helper integration.
 
 ## Goals
 
@@ -264,21 +261,31 @@ Use `:Laravel --help` to see all available commands and their descriptions.
 
 Contributions are welcome! Please check out our [contribution guidelines](CONTRIBUTING.md) for details on how to get started.
 
+For a complete guide on setting up a development environment, installing all required tools, and understanding the project structure, please refer to [DEVELOPMENT.md](DEVELOPMENT.md).
+
 ### Development Setup
 
-The project uses pre-commit hooks to ensure code quality:
+The project includes comprehensive setup for development:
 
-1. Install StyLua: https://github.com/JohnnyMorganz/StyLua
-2. Set up the Git hooks by running:
+- Complete installation instructions for all platforms in [DEVELOPMENT.md](DEVELOPMENT.md)
+- Pre-commit hooks for code quality
+- Testing framework
+- Linting and formatting tools
+
 ```bash
-./scripts/setup-hooks.sh
-```
+# Run tests
+make test
 
-This will ensure your Lua code is automatically formatted before each commit.
+# Check code quality
+make lint
+
+# Format code
+make format
+```
 
 ### Code Formatting
 
-- Lua code is formatted using StyLua according to the rules in `stylua.toml`
+- Lua code is formatted using StyLua according to the rules in `.stylua.toml`
 - Maximum line length is 120 characters
 - Files are linted using Luacheck according to `.luacheckrc`
 
