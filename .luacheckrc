@@ -49,6 +49,18 @@ files["tests/**/*.lua"] = {
     "_G", 
   },
   
+  -- Define fields for assert from luassert
+  read_globals = {
+    assert = {
+      fields = {
+        "is_true", "is_false", "is_nil", "is_not_nil", "equals", 
+        "same", "near", "matches", "has_error",
+        "truthy", "falsy", "has", "has_no", "is_string", "is_number",
+        "is_function", "is_table"
+      }
+    }
+  },
+  
   -- Allow modification of globals in test files
   allow_defined_top = true,
   
@@ -64,8 +76,7 @@ files["tests/**/*.lua"] = {
     "package", -- Package management
   },
   
-  -- Ignore unused variables in test code
-  unused = false,
+  -- For test files only, ignore unused arguments as they're often used for mock callbacks
   unused_args = false,
 }
 
@@ -76,12 +87,9 @@ self = false
 unused_args = false
 unused = false
 
--- Ignore certain warnings that don't affect functionality
+-- We don't ignore any warnings - all code style issues should be fixed
 ignore = {
-  "611", -- Line contains trailing whitespace
-  "612", -- Line contains trailing whitespace in a comment
-  "613", -- Line contains trailing whitespace in a string
-  "614", -- Line contains only whitespace (formatting style preference)
+  -- No ignored warnings
 }
 
 -- Maximum line length
