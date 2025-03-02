@@ -1,0 +1,178 @@
+name: Dependency Updates
+
+on:
+  schedule:
+    # Run weekly on Monday at 00:00 UTC
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+    # Allow manual triggering
+
+jobs:
+  check-github-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check GitHub Actions for updates
+        id: actions-check
+        uses: sethvargo/action-github-actions-updater@v1
+        with:
+          workflows: .github/workflows/*.yml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          dry-run: true
+
+      - name: Create Actions Update Report
+        run: |
+          echo "# GitHub Actions Updates" > actions_updates.md
+          echo "" >> actions_updates.md
+          echo "## Available Updates" >> actions_updates.md
+          echo "" >> actions_updates.md
+          
+          if [[ -n "${{ steps.actions-check.outputs.changes }}" ]]; then
+            echo "${{ steps.actions-check.outputs.changes }}" >> actions_updates.md
+            echo "" >> actions_updates.md
+            echo "These updates can be automatically applied by running this workflow with the dry-run option set to false." >> actions_updates.md
+          else
+            echo "All GitHub Actions are up to date\!" >> actions_updates.md
+          fi
+          
+      - name: Upload Actions Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: actions-updates
+          path: actions_updates.md
+
+  check-neovim-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check latest Neovim version
+        id: neovim-version
+        run: |
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | jq -r .tag_name)
+          LATEST_VERSION=${LATEST_RELEASE#v}
+          echo "latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          
+          # Get current required version from README
+          CURRENT_VERSION=$(grep -o "Neovim [0-9]\+\.[0-9]\+" README.md | head -1 | sed 's/Neovim //')
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          
+          # Compare versions
+          if [ "$CURRENT_VERSION" \!= "$LATEST_VERSION" ]; then
+            echo "update_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_available=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Generate report
+          echo "# Neovim Version Check" > neovim_version.md
+          echo "" >> neovim_version.md
+          echo "Current minimum required version: **$CURRENT_VERSION**" >> neovim_version.md
+          echo "Latest Neovim version: **$LATEST_VERSION**" >> neovim_version.md
+          echo "" >> neovim_version.md
+          
+          if [ "$CURRENT_VERSION" \!= "$LATEST_VERSION" ]; then
+            echo "⚠️ **Update Available**: Consider updating to support the latest Neovim features." >> neovim_version.md
+            
+            # Get the changelog for the new version
+            echo "" >> neovim_version.md
+            echo "## Notable Changes in Neovim $LATEST_VERSION" >> neovim_version.md
+            echo "" >> neovim_version.md
+            echo "Check the [official release notes](https://github.com/neovim/neovim/releases/tag/$LATEST_RELEASE) for details." >> neovim_version.md
+          else
+            echo "✅ **Up to Date**: Your plugin supports the latest Neovim version." >> neovim_version.md
+          fi
+          
+      - name: Upload Neovim Version Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: neovim-version
+          path: neovim_version.md
+
+  check-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for dependencies
+        run: |
+          echo "# Laravel Helper Dependencies" > deps_report.md
+          echo "" >> deps_report.md
+          echo "## Core Dependencies" >> deps_report.md
+          echo "" >> deps_report.md
+          
+          # Check Laravel version
+          LATEST_LARAVEL=$(curl -s https://api.github.com/repos/laravel/framework/releases/latest | jq -r .tag_name)
+          echo "- **Laravel**: Latest version $LATEST_LARAVEL" >> deps_report.md
+          
+          # Check IDE Helper version
+          LATEST_IDE_HELPER=$(curl -s https://api.github.com/repos/barryvdh/laravel-ide-helper/releases/latest | jq -r .tag_name)
+          echo "- **Laravel IDE Helper**: Latest version $LATEST_IDE_HELPER" >> deps_report.md
+          
+          echo "" >> deps_report.md
+          echo "## Neovim Plugin Dependencies" >> deps_report.md
+          echo "" >> deps_report.md
+          echo "The following Neovim plugins are recommended for use with Laravel Helper:" >> deps_report.md
+          echo "" >> deps_report.md
+          echo "- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)" >> deps_report.md
+          echo "- [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)" >> deps_report.md
+          echo "- [which-key.nvim](https://github.com/folke/which-key.nvim)" >> deps_report.md
+          
+          echo "" >> deps_report.md
+          echo "Check these repositories for updates that might affect Laravel Helper functionality." >> deps_report.md
+          
+      - name: Upload Dependencies Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: deps-report
+          path: deps_report.md
+
+  create-update-issue:
+    needs: [check-github-actions, check-neovim-version, check-dependencies]
+    if: github.event_name == 'schedule' # Only create issues on scheduled runs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download Neovim version report
+        uses: actions/download-artifact@v3
+        with:
+          name: neovim-version
+          
+      - name: Download Actions report
+        uses: actions/download-artifact@v3
+        with:
+          name: actions-updates
+          
+      - name: Download Dependencies report
+        uses: actions/download-artifact@v3
+        with:
+          name: deps-report
+      
+      - name: Combine reports
+        run: |
+          echo "# Weekly Dependency Update Report" > combined_report.md
+          echo "" >> combined_report.md
+          echo "This automated report checks for updates to dependencies used in Laravel Helper." >> combined_report.md
+          echo "" >> combined_report.md
+          
+          # Add Neovim version info
+          cat neovim_version.md >> combined_report.md
+          echo "" >> combined_report.md
+          
+          # Add GitHub Actions info
+          cat actions_updates.md >> combined_report.md
+          echo "" >> combined_report.md
+          
+          # Add dependencies info
+          cat deps_report.md >> combined_report.md
+
+      - name: Create Issue for Updates
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: Weekly Dependency Update Check
+          content-filepath: combined_report.md
+          labels: |
+            dependencies
+            automated
