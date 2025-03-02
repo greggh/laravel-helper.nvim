@@ -21,6 +21,10 @@ std = {
     "error",
     "assert",
     "_VERSION",
+    "loadfile",
+    "setfenv",
+    "setmetatable",
+    "getmetatable",
   },
 }
 
@@ -31,6 +35,40 @@ exclude_files = {
   "tests/plenary/*",
 }
 
+-- Special configuration for test files
+files["tests/**/*.lua"] = {
+  -- Allow common globals used in testing
+  globals = {
+    -- Common testing globals
+    "describe", "it", "before_each", "after_each", "teardown", "pending", "spy", "stub", "mock",
+    -- Lua standard utilities used in tests
+    "print", "dofile",
+    -- Test helpers
+    "test", "expect",
+    -- Global test state (allow modification)
+    "_G", 
+  },
+  
+  -- Allow modification of globals in test files
+  allow_defined_top = true,
+  
+  -- Allow mutation of underscore globals in test files
+  module = true,
+  
+  -- In tests, we're not concerned about these
+  max_cyclomatic_complexity = false,
+  
+  -- Don't report accessing/mutating globals that are needed for test frameworks
+  read_globals = {
+    "_G",      -- Global environment
+    "package", -- Package management
+  },
+  
+  -- Ignore unused variables in test code
+  unused = false,
+  unused_args = false,
+}
+
 -- Allow unused self arguments of methods
 self = false
 
@@ -38,12 +76,12 @@ self = false
 unused_args = false
 unused = false
 
--- Ignore warnings related to whitespace
+-- Ignore certain warnings that don't affect functionality
 ignore = {
   "611", -- Line contains trailing whitespace
   "612", -- Line contains trailing whitespace in a comment
   "613", -- Line contains trailing whitespace in a string
-  "614", -- Line contains only whitespace
+  "614", -- Line contains only whitespace (formatting style preference)
 }
 
 -- Maximum line length

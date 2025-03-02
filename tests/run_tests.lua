@@ -1,5 +1,5 @@
 -- Test runner for Plenary-based tests
-local ok, plenary = pcall(require, "plenary")
+local ok, _ = pcall(require, "plenary")
 if not ok then
   print("ERROR: Could not load plenary")
   vim.cmd("qa!")
@@ -26,7 +26,7 @@ _G.TEST_RESULTS = {
 
 -- Silence vim.notify during tests to prevent output pollution
 local original_notify = vim.notify
-vim.notify = function(msg, level, opts)
+vim.notify = function(msg, level, _)
   -- Capture the message for debugging but don't display it
   if level == vim.log.levels.ERROR then
     _G.TEST_RESULTS.last_error = msg
@@ -148,11 +148,10 @@ local function run_tests()
   end
 
   -- Setup a test counter based on terminal output
-  -- Override print to capture and count the test results
-  local old_print = print
-  print = function(msg)
+  -- Create an output processor function to count test results
+  local function process_output(msg)
     -- Forward to original print
-    old_print(msg)
+    print(msg)
 
     -- Count tests by looking for success/failure indicators
     if type(msg) == "string" then
@@ -171,18 +170,33 @@ local function run_tests()
     end
   end
 
-  -- Run each test file individually
+  -- We don't need to store the original print function
+  -- as we're using isolated environments for each test file
+
+  -- Run each test file individually in a protected environment
   for _, file in ipairs(test_files) do
-    print("\nRunning tests in: " .. vim.fn.fnamemodify(file, ":t"))
-    local status, err = pcall(dofile, file)
-    if not status then
-      print("Error loading test file: " .. err)
+    process_output("\nRunning tests in: " .. vim.fn.fnamemodify(file, ":t"))
+
+    -- Create an environment with a modified print function
+    local test_env = setmetatable({
+      print = process_output,
+    }, { __index = _G })
+
+    -- Load the file in this environment
+    local chunk, load_err = loadfile(file)
+    if not chunk then
+      process_output("Error loading test file: " .. load_err)
       error_counter = error_counter + 1
+    else
+      -- Set the environment and run the file
+      setfenv(chunk, test_env)
+      local status, err = pcall(chunk)
+      if not status then
+        process_output("Error executing test file: " .. err)
+        error_counter = error_counter + 1
+      end
     end
   end
-
-  -- Restore print function
-  print = old_print
 
   -- Count the actual number of tests based on output
   -- The test counts will be used for hardcoding since the dynamic counting isn't working
