@@ -1,10 +1,25 @@
-# Laravel Helper Manual Testing
+# Laravel Helper Testing
 
-This directory contains resources for manual testing and bug reproduction.
+This directory contains resources for automated and manual testing.
+
+## Automated Tests
+
+The plugin includes a comprehensive test suite with 40 tests covering:
+- Core module functionality
+- Command registration
+- Configuration validation
+- Health checks
+- Window navigation
+- Error handling
+
+Tests run automatically via:
+- Pre-commit hooks (when committing changes)
+- CI workflow (when pushing to GitHub)
+- Manual execution with `make test`
 
 ## Minimal Test Configuration
 
-The `minimal-init.lua` file provides a minimal Neovim configuration for testing the Laravel Helper plugin in isolation. This is useful for:
+The `minimal-init.lua` file provides a minimal Neovim configuration for testing the Laravel Helper plugin in isolation. This standardized initialization file matches the format used in related Neovim projects and is useful for:
 
 1. Reproducing and debugging issues
 2. Testing new features in a clean environment

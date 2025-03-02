@@ -1,9 +1,44 @@
+<div align="center">
+
 # Laravel-Helper.nvim
 
-[![CI](https://github.com/greggh/laravel-helper.nvim/actions/workflows/ci.yml/badge.svg)](https://github.com/greggh/laravel-helper.nvim/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/greggh/laravel-helper.nvim/ci.yml?branch=main&style=flat-square&logo=github)](https://github.com/greggh/laravel-helper.nvim/actions/workflows/ci.yml)
+[![GitHub License](https://img.shields.io/github/license/greggh/laravel-helper.nvim?style=flat-square)](https://github.com/greggh/laravel-helper.nvim/blob/main/LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/greggh/laravel-helper.nvim?style=flat-square)](https://github.com/greggh/laravel-helper.nvim/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/greggh/laravel-helper.nvim?style=flat-square)](https://github.com/greggh/laravel-helper.nvim/issues)
+[![Neovim Version](https://img.shields.io/badge/Neovim-0.8%2B-blueviolet?style=flat-square&logo=neovim)](https://github.com/neovim/neovim)
+[![Tests](https://img.shields.io/badge/Tests-40%20passing-success?style=flat-square&logo=github-actions)](https://github.com/greggh/laravel-helper.nvim/actions/workflows/ci.yml)
+
+*A comprehensive Laravel development environment for Neovim with focus on IDE Helper integration*
+
+[Features](#features) • 
+[Requirements](#requirements) • 
+[Installation](#installation) • 
+[Configuration](#configuration) • 
+[Usage](#usage) • 
+[Contributing](#contributing) • 
+[Discussions](https://github.com/greggh/laravel-helper.nvim/discussions)
+
+</div>
 
 > ⚠️ **WARNING: PRE-ALPHA SOFTWARE** ⚠️  
 > This plugin is in very early development (first commit, day one). It is currently in the "it works on my machine" phase and has not been thoroughly tested across different environments. Use at your own risk.
+
+## Table of Contents
+
+- [Goals](#goals)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+  - [Key Mappings](#key-mappings)
+  - [Commands](#commands)
+  - [Functions](#functions)
+- [Contributing](#contributing)
+- [License](#license)
+- [Community](#community)
+- [Acknowledgements](#acknowledgements)
 
 ## Goals
 
@@ -33,6 +68,7 @@ Projects we aim to integrate with include:
 - Artisan command integration
 - Support for running in Docker/Sail environments
 - Advanced debugging features
+- Comprehensive testing suite (40 tests)
 
 ## Requirements
 
@@ -223,9 +259,9 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 ```
 
-## Commands
+### Commands
 
-### Enhanced Command Structure (requires mega.cmdparse)
+#### Enhanced Command Structure (requires mega.cmdparse)
 
 When the plugin is installed with the optional mega.cmdparse dependency, it provides a structured command interface:
 
@@ -239,7 +275,7 @@ When the plugin is installed with the optional mega.cmdparse dependency, it prov
 
 Use `:Laravel --help` to see all available commands and their descriptions.
 
-### Legacy Commands
+#### Legacy Commands
 
 ```
 :LaravelArtisan <args>             - Run Laravel Artisan commands
@@ -248,7 +284,7 @@ Use `:Laravel --help` to see all available commands and their descriptions.
 :LaravelIDEHelperToggleDebug       - Toggle debug mode for IDE Helper
 ```
 
-## Functions
+### Functions
 
 - `is_laravel_project()`: Check if current directory is a Laravel project
 - `install_ide_helper()`: Install Laravel IDE Helper package
@@ -270,8 +306,9 @@ The project includes comprehensive setup for development:
 
 - Complete installation instructions for all platforms in [DEVELOPMENT.md](DEVELOPMENT.md)
 - Pre-commit hooks for code quality
-- Testing framework
+- Testing framework with 40 comprehensive tests
 - Linting and formatting tools
+- Weekly dependency updates workflow
 
 ```bash
 # Run tests
@@ -279,6 +316,9 @@ make test
 
 # Check code quality
 make lint
+
+# Set up pre-commit hooks
+scripts/setup-hooks.sh
 
 # Format code
 make format
@@ -292,4 +332,30 @@ make format
 
 ## License
 
-MIT
+[MIT License](LICENSE)
+
+## Community
+
+- [GitHub Discussions](https://github.com/greggh/laravel-helper.nvim/discussions) - Get help, share ideas, and connect with other users
+- [GitHub Issues](https://github.com/greggh/laravel-helper.nvim/issues) - Report bugs or suggest features
+- [GitHub Pull Requests](https://github.com/greggh/laravel-helper.nvim/pulls) - Contribute to the project
+
+## Acknowledgements
+
+- [Laravel IDE Helper](https://github.com/barryvdh/laravel-ide-helper) - The core functionality this plugin integrates with
+- [Laravel](https://laravel.com/) - The PHP framework this plugin enhances for Neovim
+- [nui.nvim](https://github.com/MunifTanjim/nui.nvim) - Core UI components dependency
+- [mega.cmdparse](https://github.com/ColinKennedy/mega.cmdparse) - Enhanced command interface
+- [Plenary.nvim](https://github.com/nvim-lua/plenary.nvim) - Testing framework
+- [Semantic Versioning](https://semver.org/) - Versioning standard used in this project
+- [Contributor Covenant](https://www.contributor-covenant.org/) - Code of Conduct standard
+- [Keep a Changelog](https://keepachangelog.com/) - Changelog format
+- [LuaCATS](https://luals.github.io/wiki/annotations/) - Type annotations for better IDE support
+- [StyLua](https://github.com/JohnnyMorganz/StyLua) - Lua code formatter
+- [Luacheck](https://github.com/lunarmodules/luacheck) - Lua static analyzer and linter
+
+---
+
+<div align="center">
+  <p>Made with ❤️ by <a href="https://github.com/greggh">greggh</a></p>
+</div>
