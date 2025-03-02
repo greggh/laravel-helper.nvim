@@ -2302,13 +2302,13 @@ function M.generate_ide_helper(force, use_sail_override)
     table.insert(commands, "echo 'Waiting for database to initialize...' && sleep 5")
 
     -- Create a database connection test with a command that works in all Laravel versions
-    local db_test_cmd = [[ 
-      ./vendor/bin/sail php artisan tinker --execute="try { 
-        DB::connection()->getPdo(); 
-        echo 'Database connection successful.'; 
-      } catch (\\\\Exception \\$e) { 
-        echo 'Database connection failed: ' . \\$e->getMessage(); 
-        exit(1); 
+    local db_test_cmd = [[
+      ./vendor/bin/sail php artisan tinker --execute="try {
+        DB::connection()->getPdo();
+        echo 'Database connection successful.';
+      } catch (\\Exception \$e) {
+        echo 'Database connection failed: ' . \$e->getMessage();
+        exit(1);
       }"
     ]]
     table.insert(commands, db_test_cmd)
@@ -2327,13 +2327,13 @@ function M.generate_ide_helper(force, use_sail_override)
     -- Not using Sail, use standard PHP versions
 
     -- Add database connection check and migration for standard PHP
-    local php_db_test_cmd = [[ 
-      php artisan tinker --execute="try { 
-        DB::connection()->getPdo(); 
-        echo 'Database connection successful.'; 
-      } catch (\\\\Exception \\$e) { 
-        echo 'Database connection failed: ' . \\$e->getMessage(); 
-        exit(1); 
+    local php_db_test_cmd = [[
+      php artisan tinker --execute="try {
+        DB::connection()->getPdo();
+        echo 'Database connection successful.';
+      } catch (\\Exception \$e) {
+        echo 'Database connection failed: ' . \$e->getMessage();
+        exit(1);
       }"
     ]]
     table.insert(commands, php_db_test_cmd)
