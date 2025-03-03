@@ -66,7 +66,8 @@ Projects we aim to integrate with include:
 - Automatic detection of Laravel projects
 - IDE Helper integration with support for PHP and Laravel Sail
 - Automatic installation and generation of IDE Helper files
-- Artisan command integration
+- Artisan command integration with Telescope fuzzy finding
+- Laravel routes and models browsing with Telescope
 - Support for running in Docker/Sail environments
 - Advanced debugging features
 - Comprehensive testing suite (40 tests)
@@ -83,8 +84,10 @@ Projects we aim to integrate with include:
 The following plugins provide the enhanced command interface with subcommands and automatic help:
 - [mega.cmdparse](https://github.com/ColinKennedy/mega.cmdparse) - Command parsing and interface (optional but recommended)
 - [mega.logging](https://github.com/ColinKennedy/mega.logging) - Logging utilities (required by mega.cmdparse)
+- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - Enhanced fuzzy finder for Artisan commands, routes, and models
 
-Without these, the plugin will fall back to the legacy command interface.
+Without mega.cmdparse, the plugin will fall back to the legacy command interface.
+Without telescope.nvim, the plugin will fall back to simple input prompts for Artisan commands.
 
 ### Recommended Laravel Ecosystem Plugins
 For a complete Laravel development environment, we recommend the following plugins:
@@ -132,9 +135,13 @@ For a complete Laravel development environment, we recommend the following plugi
     -- Core dependencies
     "MunifTanjim/nui.nvim",
     
+    -- Telescope integration
+    "nvim-telescope/telescope.nvim",
+    "nvim-telescope/telescope-fzf-native.nvim",
+    "nvim-lua/plenary.nvim",       -- Required by telescope
+    
     -- Additional recommended Laravel ecosystem dependencies
     "folke/lazy.nvim",
-    "nvim-lua/plenary.nvim",
     "nvim-neotest/nvim-nio",
     "neovim/nvim-lspconfig",
     "williamboman/mason.nvim",
@@ -275,6 +282,18 @@ When the plugin is installed with the optional mega.cmdparse dependency, it prov
 ```
 
 Use `:Laravel --help` to see all available commands and their descriptions.
+
+#### Telescope Integration (requires telescope.nvim)
+
+When the plugin is installed with telescope.nvim, it provides enhanced selection interfaces:
+
+```
+:LaravelTelescope artisan         - Browse and run Artisan commands with fuzzy finder
+:LaravelTelescope routes          - Browse Laravel routes with fuzzy finder
+:LaravelTelescope models          - Browse Laravel models with fuzzy finder
+```
+
+The plugin also automatically uses Telescope for the Artisan command input when you call functions like `run_artisan_command()` without a specific command.
 
 #### Legacy Commands
 

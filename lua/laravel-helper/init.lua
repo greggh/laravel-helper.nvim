@@ -25,6 +25,11 @@ function M.is_laravel_project()
   return M.core.find_laravel_root() ~= nil
 end
 
+-- Check if telescope is available
+local function has_telescope()
+  return pcall(require, "telescope")
+end
+
 -- Setup function to configure the plugin
 ---@param user_config? table User configuration
 ---@return LaravelHelper
@@ -76,6 +81,63 @@ function M.setup(user_config)
       ),
       vim.log.levels.WARN
     )
+  end
+
+  -- Setup Telescope integration if available
+  if has_telescope() then
+    -- First load telescope
+    local telescope = require("telescope")
+    -- Then setup our module
+    local telescope_module = require("laravel-helper.telescope")
+    telescope_module.setup(M.core)
+
+    -- Register extension and check it's available
+    vim.defer_fn(function()
+      if telescope.extensions and telescope.extensions.laravel then
+        -- Extension is registered successfully
+        vim.notify("Laravel Telescope extension registered successfully", vim.log.levels.DEBUG)
+      else
+        -- Extension didn't register properly, notify in debug mode
+        vim.notify("Laravel Telescope extension not registered properly", vim.log.levels.DEBUG)
+      end
+    end, 100)
+
+    -- Override the run_artisan_command to use Telescope when available
+    telescope_module.override_artisan_command(M.core)
+
+    -- Add mapping to M for direct access
+    M.telescope = telescope_module
+
+    -- Add user command for Laravel Telescope extension
+    vim.api.nvim_create_user_command("LaravelTelescope", function(opts)
+      local subcmd = opts.args and opts.args ~= "" and opts.args or "artisan"
+
+      -- Make sure the extension is properly registered
+      local has_laravel_ext, telescope_ext = pcall(function()
+        return require("telescope").extensions.laravel
+      end)
+
+      if not has_laravel_ext or not telescope_ext then
+        vim.notify("Laravel Telescope extension not properly registered. Try restarting Neovim.", vim.log.levels.ERROR)
+        return
+      end
+
+      if subcmd == "artisan" then
+        telescope_ext.artisan()
+      elseif subcmd == "routes" then
+        telescope_ext.routes()
+      elseif subcmd == "models" then
+        telescope_ext.models()
+      else
+        vim.notify("Unknown Laravel Telescope command: " .. subcmd, vim.log.levels.WARN)
+      end
+    end, {
+      desc = "Laravel Telescope commands",
+      nargs = "?",
+      complete = function()
+        return { "artisan", "routes", "models" }
+      end,
+    })
   end
 
   -- Log plugin initialization
@@ -145,7 +207,13 @@ function M.run_artisan_command(command)
   end
 
   if not command then
-    -- If no command was provided, prompt the user
+    -- If Telescope is available, use it for command selection
+    if has_telescope() then
+      require("telescope").extensions.laravel.artisan()
+      return
+    end
+
+    -- Otherwise, fall back to vim.ui.input
     vim.ui.input({
       prompt = "Artisan command: ",
       default = "route:list",
@@ -215,7 +283,7 @@ function M.has_sail()
 end
 
 function M.is_ide_helper_installed()
-  return ensure_core().is_ide_helper_installed()
+  return ensure_core().has_ide_helper()
 end
 
 function M.is_sail_running()
