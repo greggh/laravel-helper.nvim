@@ -171,7 +171,7 @@ function M.setup(core)
               { prompt = "Artisan command: " .. selection.value .. " ", default = selection.value },
               function(input)
                 if input and input ~= "" then
-                  -- Create a function that displays the command output in a Telescope buffer
+                  -- Create a function that displays the command output in a custom floating window
                   local function show_command_output()
                     local project_root = core.find_laravel_root()
                     if not project_root then
@@ -214,71 +214,96 @@ function M.setup(core)
                       table.insert(lines, line)
                     end
 
-                    -- Display the output in a Telescope buffer
-                    -- Create a custom picker for command output display
-                    local results_picker = pickers.new({
-                      initial_mode = "insert", -- Start in insert mode for better focus
-                      prompt_title = "Artisan Command: " .. input,
-                      finder = finders.new_table({
-                        results = lines,
-                        entry_maker = function(entry)
-                          return {
-                            value = entry,
-                            display = entry,
-                            ordinal = entry,
-                          }
-                        end,
-                      }),
-                      -- Use default layout strategy for display
-                      theme = nil,
-                      layout_strategy = "horizontal",
-                      layout_config = {
-                        horizontal = {
-                          prompt_position = "top",
-                          preview_width = 0.5,
-                          width = 0.9,
-                          height = 0.9,
-                        },
-                      },
-                      -- Use the default sorter from telescope config
-                      sorter = conf.generic_sorter({}),
-                      -- No previewer needed for command output
-                      previewer = false,
-                      -- Setup keymaps to fix the 'A' problem
-                      attach_mappings = function(output_bufnr, output_map)
-                        -- Map some common keys to do nothing, effectively blocking filtering
-                        -- Only need to map a few keys since we clear the buffer right after
-                        local common_keys = { "a", "A", "<c-a>", "<bs>", "<c-u>", "<esc>" }
-                        for _, key in ipairs(common_keys) do
-                          output_map("i", key, function()
-                            return true
-                          end)
-                        end
+                    -- Remove empty lines at the beginning and end
+                    local function trim_empty_lines(lines_array)
+                      local start_idx = 1
+                      local end_idx = #lines_array
 
-                        -- Clear the prompt right after it appears
-                        vim.schedule(function()
-                          if vim.api.nvim_buf_is_valid(output_bufnr) then
-                            -- Clear the prompt entirely except for prompt prefix
-                            local prompt_prefix = vim.fn.prompt_getprompt(output_bufnr)
-                            if prompt_prefix and prompt_prefix ~= "" then
-                              vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, { prompt_prefix })
-                            end
+                      -- Find first non-empty line from start
+                      while start_idx <= end_idx and (lines_array[start_idx] == nil or lines_array[start_idx] == "") do
+                        start_idx = start_idx + 1
+                      end
 
-                            -- Move cursor to end of prompt prefix
-                            local len = #prompt_prefix
-                            if len > 0 then
-                              vim.api.nvim_win_set_cursor(vim.fn.bufwinid(output_bufnr), { 1, len })
-                            end
-                          end
-                        end)
+                      -- Find first non-empty line from end
+                      while end_idx >= start_idx and (lines_array[end_idx] == nil or lines_array[end_idx] == "") do
+                        end_idx = end_idx - 1
+                      end
 
-                        return true -- keep default mappings
-                      end,
+                      -- Extract only non-empty lines
+                      local result = {}
+                      for i = start_idx, end_idx do
+                        table.insert(result, lines_array[i])
+                      end
+
+                      return result
+                    end
+
+                    -- Trim the empty lines
+                    lines = trim_empty_lines(lines)
+
+                    -- If no output, add a message
+                    if #lines == 0 then
+                      table.insert(lines, "Command completed with no output.")
+                    end
+
+                    -- Create a buffer for the output
+                    local buf = vim.api.nvim_create_buf(false, true)
+
+                    -- Set buffer options
+                    vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+                    vim.api.nvim_buf_set_option(buf, "filetype", "artisan-output")
+                    vim.api.nvim_buf_set_option(buf, "modifiable", true)
+
+                    -- Set the content
+                    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+                    vim.api.nvim_buf_set_option(buf, "modifiable", false)
+
+                    -- Calculate window dimensions
+                    local width = math.min(vim.o.columns - 4, math.max(80, vim.o.columns - 20))
+                    local height = math.min(vim.o.lines - 4, math.max(20, vim.o.lines - 10))
+
+                    -- Configure the window
+                    local win_config = {
+                      relative = "editor",
+                      width = width,
+                      height = height,
+                      row = math.floor((vim.o.lines - height) / 2),
+                      col = math.floor((vim.o.columns - width) / 2),
+                      style = "minimal",
+                      border = "rounded",
+                      title = " Artisan Command: " .. input .. " ",
+                      title_pos = "center",
+                    }
+
+                    -- Create the window
+                    local win = vim.api.nvim_open_win(buf, true, win_config)
+
+                    -- Set window options
+                    vim.api.nvim_win_set_option(win, "wrap", true)
+                    vim.api.nvim_win_set_option(win, "cursorline", true)
+                    vim.api.nvim_win_set_option(win, "winhl", "Normal:TelescopeNormal,FloatBorder:TelescopeBorder")
+
+                    -- Add key mappings to close the window
+                    local keymaps = {
+                      ["q"] = true,
+                      ["<Esc>"] = true,
+                      ["<C-c>"] = true,
+                    }
+
+                    for key, _ in pairs(keymaps) do
+                      vim.api.nvim_buf_set_keymap(buf, "n", key, "<cmd>bdelete!<CR>", {
+                        noremap = true,
+                        silent = true,
+                        nowait = true,
+                      })
+                    end
+
+                    -- Add a footer with instructions
+                    local ns_id = vim.api.nvim_create_namespace("artisan_output")
+                    vim.api.nvim_buf_set_extmark(buf, ns_id, #lines - 1, 0, {
+                      virt_text = { { "Press q or <Esc> to close", "Comment" } },
+                      virt_text_pos = "eol",
                     })
-
-                    -- Make sure we show all results by using empty string search
-                    -- This helps ensure results display properly even if filtering is attempted
-                    results_picker:find("")
                   end
 
                   -- Run our new function instead of the core one
