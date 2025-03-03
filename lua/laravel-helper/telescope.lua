@@ -217,7 +217,7 @@ function M.setup(core)
                     -- Display the output in a Telescope buffer
                     -- Create a custom picker for command output display
                     local results_picker = pickers.new({
-                      initial_mode = "normal", -- Start in normal mode
+                      initial_mode = "insert", -- Start in insert mode for better focus
                       prompt_title = "Artisan Command: " .. input,
                       finder = finders.new_table({
                         results = lines,
@@ -240,15 +240,43 @@ function M.setup(core)
                           height = 0.9,
                         },
                       },
-                      -- Use an empty string sorter that doesn't actually filter
-                      sorter = require("telescope.sorters").get_generic_fuzzy_sorter(),
+                      -- Use a dummy sorter that doesn't actually do any filtering
+                      sorter = {
+                        -- Return score 1 for everything - everything passes
+                        scoring_function = function()
+                          return 1
+                        end,
+                        -- Highlighter that doesn't highlight anything
+                        highlighter = function()
+                          return nil
+                        end,
+                        -- No initialization needed
+                        _init = function() end,
+                        -- No destruction needed
+                        _destroy = function() end,
+                        -- No finish needed
+                        _finish = function() end,
+                        -- Score everything the same, so nothing gets filtered
+                        score = function(_, entry, cb_add)
+                          cb_add(1, entry)
+                        end,
+                      },
                       -- No previewer needed for command output
                       previewer = false,
                       -- Setup keymaps to fix the 'A' problem
                       attach_mappings = function(output_bufnr, output_map)
-                        -- Immediately clear prompt text when picker is shown
+                        -- Block filtering by creating a null filter function
+                        require("telescope.actions.set").filter(function()
+                          -- Don't actually filter anything when typing
+                          return function()
+                            return true
+                          end
+                        end, output_bufnr)
+
+                        -- Use direct keymap to ensure prompt is cleared
                         vim.schedule(function()
                           if vim.api.nvim_buf_is_valid(output_bufnr) then
+                            -- Clear the 'A' character from the prompt
                             local prompt_prefix = vim.fn.prompt_getprompt(output_bufnr)
                             vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, { prompt_prefix })
                           end
