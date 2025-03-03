@@ -240,27 +240,8 @@ function M.setup(core)
                           height = 0.9,
                         },
                       },
-                      -- Use a dummy sorter that doesn't actually do any filtering
-                      sorter = {
-                        -- Return score 1 for everything - everything passes
-                        scoring_function = function()
-                          return 1
-                        end,
-                        -- Highlighter that doesn't highlight anything
-                        highlighter = function()
-                          return nil
-                        end,
-                        -- No initialization needed
-                        _init = function() end,
-                        -- No destruction needed
-                        _destroy = function() end,
-                        -- No finish needed
-                        _finish = function() end,
-                        -- Score everything the same, so nothing gets filtered
-                        score = function(_, entry, cb_add)
-                          cb_add(1, entry)
-                        end,
-                      },
+                      -- Use the default sorter from telescope config
+                      sorter = conf.generic_sorter({}),
                       -- No previewer needed for command output
                       previewer = false,
                       -- Setup keymaps to fix the 'A' problem
