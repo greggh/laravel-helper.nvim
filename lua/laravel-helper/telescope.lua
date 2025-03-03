@@ -247,6 +247,17 @@ function M.setup(core)
                         }),
                         sorter = conf.generic_sorter({}),
                         previewer = false, -- No previewer needed for command output
+                        attach_mappings = function(output_prompt_bufnr, output_map)
+                          -- Disable the default enter/selection behavior
+                          -- Allow scrolling but prevent entry selection
+                          actions.select_default:replace(function()
+                            -- Do nothing when pressing enter
+                            vim.notify("No action available for artisan command output", vim.log.levels.INFO)
+                          end)
+
+                          -- Return true to keep other mappings
+                          return true
+                        end,
                       })
                       :find()
                   end
