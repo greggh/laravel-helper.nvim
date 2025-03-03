@@ -215,47 +215,51 @@ function M.setup(core)
                     end
 
                     -- Display the output in a Telescope buffer
-                    pickers
-                      .new({
-                        -- Use layout with prompt at the top
-                        theme = nil,
-                        layout_strategy = "horizontal",
-                        initial_mode = "normal", -- Start in normal mode to prevent automatic insertion
-                        default_text = "", -- Clear any default text in prompt
-                        layout_config = {
-                          horizontal = {
-                            prompt_position = "top",
-                            preview_width = 0.5,
-                            width = 0.9,
-                            height = 0.9,
-                          },
-                        },
-                      }, {
-                        prompt_title = "Artisan Command: " .. input,
-                        finder = finders.new_table({
-                          results = lines,
-                          entry_maker = function(entry)
-                            return {
-                              value = entry,
-                              display = entry,
-                              ordinal = entry,
-                            }
-                          end,
-                        }),
-                        sorter = conf.generic_sorter({}),
-                        previewer = false, -- No previewer needed for command output
-                        attach_mappings = function(output_prompt_bufnr, output_map)
-                          -- Disable the default enter/selection behavior
-                          -- Allow scrolling but prevent entry selection
-                          actions.select_default:replace(function()
-                            -- Do nothing when pressing enter - silently ignore selection
-                          end)
-
-                          -- Return true to keep other mappings
-                          return true
+                    -- Create a custom picker for command output display
+                    local results_picker = pickers.new({
+                      initial_mode = "normal", -- Start in normal mode
+                      prompt_title = "Artisan Command: " .. input,
+                      finder = finders.new_table({
+                        results = lines,
+                        entry_maker = function(entry)
+                          return {
+                            value = entry,
+                            display = entry,
+                            ordinal = entry,
+                          }
                         end,
-                      })
-                      :find("") -- Explicitly pass empty string to find to clear filter
+                      }),
+                      -- Use default layout strategy for display
+                      theme = nil,
+                      layout_strategy = "horizontal",
+                      layout_config = {
+                        horizontal = {
+                          prompt_position = "top",
+                          preview_width = 0.5,
+                          width = 0.9,
+                          height = 0.9,
+                        },
+                      },
+                      -- Use an empty string sorter that doesn't actually filter
+                      sorter = require("telescope.sorters").get_generic_fuzzy_sorter(),
+                      -- No previewer needed for command output
+                      previewer = false,
+                      -- Setup keymaps to fix the 'A' problem
+                      attach_mappings = function(output_bufnr, output_map)
+                        -- Immediately clear prompt text when picker is shown
+                        vim.schedule(function()
+                          if vim.api.nvim_buf_is_valid(output_bufnr) then
+                            local prompt_prefix = vim.fn.prompt_getprompt(output_bufnr)
+                            vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, { prompt_prefix })
+                          end
+                        end)
+
+                        return true -- keep default mappings
+                      end,
+                    })
+
+                    -- Display the output
+                    results_picker:find()
                   end
 
                   -- Run our new function instead of the core one
