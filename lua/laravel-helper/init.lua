@@ -92,9 +92,6 @@ function M.setup(user_config)
 
     -- Setup telescope integration
     vim.defer_fn(function()
-      -- Add debug notification for telescope extension loading
-      vim.notify("Laravel Helper: Starting Telescope integration setup", vim.log.levels.INFO)
-
       -- Wrap everything in pcall to prevent any errors from breaking setup
       local ok, err = pcall(function()
         telescope_module.setup(M.core)
@@ -105,16 +102,11 @@ function M.setup(user_config)
         -- Add mapping to M for direct access
         M.telescope = telescope_module
 
-        -- Log successful registration
-        vim.notify("Laravel Helper: Telescope integration setup complete", vim.log.levels.INFO)
-
-        -- Verify if the extension is properly registered
+        -- Silently verify extension registration, only notify on error
         local has_ext, _ = pcall(function()
           return require("telescope").extensions.laravel
         end)
-        if has_ext then
-          vim.notify("Laravel Helper: Telescope extension 'laravel' is registered successfully", vim.log.levels.INFO)
-        else
+        if not has_ext then
           vim.notify("Laravel Helper: Telescope extension 'laravel' is NOT registered properly", vim.log.levels.ERROR)
         end
       end)
@@ -129,21 +121,17 @@ function M.setup(user_config)
       -- Get functions from our telescope module
       local telescope_ext = require("laravel-helper.telescope")
 
-      vim.notify("Laravel Helper: Creating user command LaravelTelescope", vim.log.levels.INFO)
+      -- Create the commands silently without notifications
 
       -- Add command for easy access to all pickers
       vim.api.nvim_create_user_command("LaravelTelescope", function(opts)
         local subcmd = opts.args and opts.args ~= "" and opts.args or "artisan"
-
-        vim.notify("Laravel Helper: Running LaravelTelescope command: " .. subcmd, vim.log.levels.INFO)
 
         -- Get the telescope object directly for reliability
         local telescope_obj = require("telescope")
 
         -- Make sure our extension exists
         if telescope_obj.extensions and telescope_obj.extensions.laravel then
-          vim.notify("Laravel Helper: Extension found, executing " .. subcmd, vim.log.levels.INFO)
-
           -- Check that the requested subcommand exists
           if subcmd == "artisan" and type(telescope_obj.extensions.laravel.artisan) == "function" then
             telescope_obj.extensions.laravel.artisan()

@@ -14,18 +14,14 @@ local artisan_help_cache = {}
 local function has_telescope()
   local telescope_available, telescope_module = pcall(require, "telescope")
   if telescope_available then
-    vim.notify("Laravel Helper: Telescope found and loaded", vim.log.levels.INFO)
-
-    -- Check if telescope has loaded its extensions mechanism
-    if telescope_module and telescope_module.extensions then
-      vim.notify("Laravel Helper: Telescope extensions table exists", vim.log.levels.INFO)
-    else
+    -- Only show critical errors, not info messages
+    if not telescope_module or not telescope_module.extensions then
       vim.notify("Laravel Helper: Telescope loaded but extensions table doesn't exist!", vim.log.levels.WARN)
     end
 
     return true
   else
-    vim.notify("Laravel Helper: Telescope not found or not properly loaded", vim.log.levels.ERROR)
+    vim.notify("Laravel Helper: Telescope not found. Some features will be disabled.", vim.log.levels.WARN)
     return false
   end
 end
@@ -54,10 +50,9 @@ function M.setup(core)
 
     -- Check for existing cache
     if artisan_commands_cache then
-      vim.notify("Laravel Helper: Using cached artisan commands", vim.log.levels.DEBUG)
       commands = vim.deepcopy(artisan_commands_cache)
     else
-      vim.notify("Laravel Helper: Building artisan commands cache", vim.log.levels.INFO)
+      -- Silently build the cache without notification
 
       -- Start with common artisan commands as initial suggestions
       commands = {
@@ -251,8 +246,7 @@ function M.setup(core)
                           -- Disable the default enter/selection behavior
                           -- Allow scrolling but prevent entry selection
                           actions.select_default:replace(function()
-                            -- Do nothing when pressing enter
-                            vim.notify("No action available for artisan command output", vim.log.levels.INFO)
+                            -- Do nothing when pressing enter - silently ignore selection
                           end)
 
                           -- Return true to keep other mappings
@@ -543,12 +537,10 @@ function M.setup(core)
 
   -- Register the extension with the name "laravel" directly in the Telescope namespace
   -- This is a simple approach to avoid Telescope extension loading issues
-  vim.notify("Laravel Helper: Setting up Telescope extension directly", vim.log.levels.INFO)
 
   -- First make sure the extensions table exists
   if not telescope.extensions then
     telescope.extensions = {}
-    vim.notify("Laravel Helper: Created extensions table", vim.log.levels.INFO)
   end
 
   -- Create our extension directly
@@ -558,10 +550,8 @@ function M.setup(core)
     models = models_picker,
   }
 
-  -- Add a verification check
-  if telescope.extensions.laravel then
-    vim.notify("Laravel Helper: Telescope extension 'laravel' successfully registered", vim.log.levels.INFO)
-  else
+  -- Only show error if registration fails
+  if not telescope.extensions.laravel then
     vim.notify("Laravel Helper: Failed to register Telescope extension 'laravel'", vim.log.levels.ERROR)
   end
 end
