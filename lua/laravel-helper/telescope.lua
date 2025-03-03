@@ -265,20 +265,29 @@ function M.setup(core)
                       previewer = false,
                       -- Setup keymaps to fix the 'A' problem
                       attach_mappings = function(output_bufnr, output_map)
-                        -- Block filtering by creating a null filter function
-                        require("telescope.actions.set").filter(function()
-                          -- Don't actually filter anything when typing
-                          return function()
+                        -- Map some common keys to do nothing, effectively blocking filtering
+                        -- Only need to map a few keys since we clear the buffer right after
+                        local common_keys = { "a", "A", "<c-a>", "<bs>", "<c-u>", "<esc>" }
+                        for _, key in ipairs(common_keys) do
+                          output_map("i", key, function()
                             return true
-                          end
-                        end, output_bufnr)
+                          end)
+                        end
 
-                        -- Use direct keymap to ensure prompt is cleared
+                        -- Clear the prompt right after it appears
                         vim.schedule(function()
                           if vim.api.nvim_buf_is_valid(output_bufnr) then
-                            -- Clear the 'A' character from the prompt
+                            -- Clear the prompt entirely except for prompt prefix
                             local prompt_prefix = vim.fn.prompt_getprompt(output_bufnr)
-                            vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, { prompt_prefix })
+                            if prompt_prefix and prompt_prefix ~= "" then
+                              vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, { prompt_prefix })
+                            end
+
+                            -- Move cursor to end of prompt prefix
+                            local len = #prompt_prefix
+                            if len > 0 then
+                              vim.api.nvim_win_set_cursor(vim.fn.bufwinid(output_bufnr), { 1, len })
+                            end
                           end
                         end)
 
@@ -286,8 +295,9 @@ function M.setup(core)
                       end,
                     })
 
-                    -- Display the output
-                    results_picker:find()
+                    -- Make sure we show all results by using empty string search
+                    -- This helps ensure results display properly even if filtering is attempted
+                    results_picker:find("")
                   end
 
                   -- Run our new function instead of the core one
