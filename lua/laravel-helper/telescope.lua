@@ -29,8 +29,16 @@ function M.setup(core)
   -- Register the extension with the name "laravel"
   local success, err = pcall(function()
     telescope.register_extension({
-      setup = function(ext_config, config)
-        -- Any setup needed
+      setup = function(ext_config, _)
+        -- Configure the extension with default options
+        vim.tbl_deep_extend("force", {
+          theme = "ivy", -- Use the ivy theme for better previews
+          previewer = true, -- Enable previewing by default
+          layout_config = {
+            height = 0.8,
+            width = 0.8,
+          },
+        }, ext_config or {})
       end,
       exports = {
         artisan = function(opts)
@@ -78,6 +86,23 @@ function M.setup(core)
           -- Sort commands alphabetically
           table.sort(commands)
 
+          -- Set default theme to ivy for better preview
+          opts.theme = opts.theme or "ivy"
+
+          -- Create command details for preview
+          local command_details = {}
+          for _, cmd_name in ipairs(commands) do
+            -- Try to get help info for the command
+            local root_dir = core.find_laravel_root()
+            if root_dir then
+              local info = core.with_sail_or_php("php artisan help " .. cmd_name .. " --no-ansi 2>/dev/null")
+              if info then
+                local help_output = vim.fn.system(info.command)
+                command_details[cmd_name] = help_output
+              end
+            end
+          end
+
           pickers
             .new(opts, {
               prompt_title = "Laravel Artisan Commands",
@@ -88,12 +113,28 @@ function M.setup(core)
                     value = entry,
                     display = entry,
                     ordinal = entry,
+                    preview_command = command_details[entry] or "No help available for this command",
                   }
                 end,
               }),
               sorter = conf.generic_sorter(opts),
+              previewer = {
+                -- Custom previewer that shows command help
+                new = function(_, _)
+                  return require("telescope.previewers").new_buffer_previewer({
+                    title = "Artisan Command Help",
+                    get_buffer_by_name = function(_, entry)
+                      return entry.value
+                    end,
+                    define_preview = function(self, entry)
+                      local help_text = entry.preview_command or "No help available for this command"
+                      vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, vim.split(help_text, "\n"))
+                    end,
+                  })
+                end,
+              },
               attach_mappings = function(prompt_bufnr, map)
-                -- Execute the selected artisan command
+                -- Execute the selected artisan command with Telescope output
                 local run_command = function()
                   local selection = action_state.get_selected_entry()
                   actions.close(prompt_bufnr)
@@ -103,7 +144,77 @@ function M.setup(core)
                     { prompt = "Artisan command: " .. selection.value .. " ", default = selection.value },
                     function(input)
                       if input and input ~= "" then
-                        core.run_artisan_command(input)
+                        -- Create a function that displays the command output in a Telescope buffer
+                        local function show_command_output()
+                          local project_root = core.find_laravel_root()
+                          if not project_root then
+                            vim.notify("Not in a Laravel project", vim.log.levels.WARN)
+                            return
+                          end
+
+                          -- Get the command with sail or php
+                          local cmd_info = core.with_sail_or_php("php artisan " .. input)
+                          if not cmd_info then
+                            vim.notify("Failed to create command", vim.log.levels.ERROR)
+                            return
+                          end
+
+                          -- Create a temporary file to capture output
+                          local temp_file = os.tmpname()
+                          local command_string = cmd_info.command .. " > " .. temp_file .. " 2>&1"
+
+                          -- Show a notification that we're running the command
+                          vim.notify("Running: " .. input, vim.log.levels.INFO)
+
+                          -- Run the command and capture output
+                          vim.fn.system(command_string)
+
+                          -- Read the output
+                          local file = io.open(temp_file, "r")
+                          if not file then
+                            vim.notify("Failed to read command output", vim.log.levels.ERROR)
+                            os.remove(temp_file)
+                            return
+                          end
+
+                          local content = file:read("*all")
+                          file:close()
+                          os.remove(temp_file)
+
+                          -- Split content into lines
+                          local lines = {}
+                          for line in content:gmatch("[^\r\n]+") do
+                            table.insert(lines, line)
+                          end
+
+                          -- Display the output in a Telescope buffer
+                          pickers
+                            .new({ theme = "ivy" }, {
+                              prompt_title = "Artisan Command: " .. input,
+                              finder = finders.new_table({
+                                results = lines,
+                                entry_maker = function(entry)
+                                  return {
+                                    value = entry,
+                                    display = entry,
+                                    ordinal = entry,
+                                  }
+                                end,
+                              }),
+                              sorter = conf.generic_sorter({}),
+                              previewer = false, -- No previewer needed for command output
+                              layout_strategy = "vertical",
+                              layout_config = {
+                                height = 0.8,
+                                width = 0.8,
+                                preview_height = 0.5,
+                              },
+                            })
+                            :find()
+                        end
+
+                        -- Run our new function instead of the core one
+                        show_command_output()
                       end
                     end
                   )
@@ -122,6 +233,8 @@ function M.setup(core)
         -- Add picker for Laravel routes
         routes = function(opts)
           opts = opts or {}
+          -- Set default theme to ivy for better preview
+          opts.theme = opts.theme or "ivy"
 
           -- Get laravel root directory
           local laravel_root = core.find_laravel_root()
@@ -184,11 +297,49 @@ function M.setup(core)
                     value = entry,
                     display = display,
                     ordinal = display,
+                    -- Add extra fields for better preview
+                    route_method = entry.method,
+                    route_uri = entry.uri,
+                    route_name = entry.name,
+                    route_action = entry.action,
                   }
                 end,
               }),
               sorter = conf.generic_sorter(opts),
-              previewer = conf.qflist_previewer(opts),
+              previewer = {
+                -- Custom route previewer with better formatting
+                new = function(_, _)
+                  return require("telescope.previewers").new_buffer_previewer({
+                    title = "Route Details",
+                    get_buffer_by_name = function(_, entry)
+                      return entry.value.uri
+                    end,
+                    define_preview = function(self, entry)
+                      local lines = {
+                        "Route Details:",
+                        "-------------",
+                        "Method:  " .. entry.route_method,
+                        "URI:     " .. entry.route_uri,
+                        "Name:    " .. (entry.route_name ~= "" and entry.route_name or "(unnamed)"),
+                        "Action:  " .. entry.route_action,
+                        "",
+                        "URL Example:",
+                        "------------",
+                      }
+
+                      -- Build example URL
+                      local url = entry.route_uri:gsub("{([^}]+)}", function(param)
+                        return ":" .. param
+                      end)
+
+                      table.insert(lines, "http://localhost/" .. url:gsub("^/", ""))
+
+                      vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+                      vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "markdown")
+                    end,
+                  })
+                end,
+              },
             })
             :find()
         end,
@@ -196,6 +347,8 @@ function M.setup(core)
         -- Add picker for Laravel models
         models = function(opts)
           opts = opts or {}
+          -- Set default theme to ivy for better preview
+          opts.theme = opts.theme or "ivy"
 
           -- Get laravel root directory
           local laravel_root = core.find_laravel_root()
@@ -212,8 +365,8 @@ function M.setup(core)
           end
 
           -- Use find command to locate model files
-          local cmd = string.format("find %s -type f -name '*.php' | sort", vim.fn.shellescape(models_dir))
-          local handle = io.popen(cmd)
+          local find_cmd = string.format("find %s -type f -name '*.php' | sort", vim.fn.shellescape(models_dir))
+          local handle = io.popen(find_cmd)
 
           if not handle then
             vim.notify("Failed to find models", vim.log.levels.ERROR)
@@ -245,7 +398,80 @@ function M.setup(core)
                 end,
               }),
               sorter = conf.generic_sorter(opts),
-              previewer = conf.file_previewer(opts),
+              previewer = {
+                -- Enhanced model previewer that shows model structure
+                new = function(_, _)
+                  return require("telescope.previewers").new_buffer_previewer({
+                    title = "Model Preview",
+                    get_buffer_by_name = function(_, entry)
+                      return entry.filename
+                    end,
+                    define_preview = function(self, entry)
+                      -- First show the file content
+                      local filename = entry.filename
+                      local cat_cmd = "cat " .. vim.fn.shellescape(filename)
+                      local content = vim.fn.system(cat_cmd)
+
+                      -- Set filetype for syntax highlighting
+                      vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, vim.split(content, "\n"))
+                      vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "php")
+
+                      -- Try to extract model properties using grep
+                      local project_root = core.find_laravel_root()
+                      if project_root then
+                        -- Use deferreed loading to not block the UI
+                        vim.defer_fn(function()
+                          -- Try to find model properties using sail tinker or php
+                          local model_name = vim.fn.fnamemodify(filename, ":t:r")
+                          local cmd_info = core.with_sail_or_php(
+                            'php artisan tinker --execute="try { '
+                              .. "echo 'Model: "
+                              .. model_name
+                              .. "\\n\\n'; "
+                              .. "echo 'Table: ' . (new \\App\\Models\\"
+                              .. model_name
+                              .. ")->getTable() . '\\n\\n'; "
+                              .. "echo 'Fillable: ' . json_encode((new \\App\\Models\\"
+                              .. model_name
+                              .. ")->getFillable(), JSON_PRETTY_PRINT) . '\\n\\n'; "
+                              .. "echo 'Properties: \\n'; "
+                              .. "} catch (\\Exception \\$e) { "
+                              .. "echo 'Error: ' . \\$e->getMessage(); "
+                              .. '}"'
+                          )
+
+                          if cmd_info then
+                            -- Run the command to get model info
+                            local model_info = vim.fn.system(cmd_info.command)
+                            if model_info and #model_info > 0 and not model_info:match("Error:") then
+                              -- Add the model info at the top of the buffer
+                              local info_lines = vim.split(model_info, "\n")
+                              local existing_lines = vim.api.nvim_buf_get_lines(self.state.bufnr, 0, -1, false)
+                              local combined_lines = {}
+
+                              -- Add a separator between model info and code
+                              table.insert(info_lines, "")
+                              table.insert(info_lines, "/* " .. string.rep("-", 50) .. " */")
+                              table.insert(info_lines, "/* Source Code: */")
+                              table.insert(info_lines, "")
+
+                              -- Combine info with existing content
+                              for _, line in ipairs(info_lines) do
+                                table.insert(combined_lines, line)
+                              end
+                              for _, line in ipairs(existing_lines) do
+                                table.insert(combined_lines, line)
+                              end
+
+                              vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, combined_lines)
+                            end
+                          end
+                        end, 100) -- Small delay to allow preview to show first
+                      end
+                    end,
+                  })
+                end,
+              },
               attach_mappings = function(prompt_bufnr, map)
                 actions.select_default:replace(function()
                   local selection = action_state.get_selected_entry()
