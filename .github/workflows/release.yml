@@ -62,15 +62,29 @@ jobs:
           if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
             # For tag pushes, extract from CHANGELOG.md if it exists
             VERSION="${{ steps.get_version.outputs.VERSION }}"
+            
+            echo "Checking for changelog entry: ## [${VERSION}]"
+            grep -n "## \[${VERSION}\]" CHANGELOG.md || echo "No exact match found"
+            
             if grep -q "## \[${VERSION}\]" CHANGELOG.md; then
               echo "Extracting changelog for v${VERSION} from CHANGELOG.md"
-              CHANGELOG_CONTENT=$(awk -v ver="## [${VERSION}]" '
-                BEGIN { printing = 0; content = ""; }
-                $0 ~ ver { printing = 1; next; }
-                /^## \[/ { if (printing == 1) { printing = 0; } }
-                { if (printing == 1) content = content $0 "\n"; }
-                END { print content; }
-              ' CHANGELOG.md)
+              
+              # Use sed to extract the changelog section
+              SECTION_START=$(grep -n "## \[${VERSION}\]" CHANGELOG.md | cut -d: -f1)
+              NEXT_SECTION=$(tail -n +$((SECTION_START+1)) CHANGELOG.md | grep -n "## \[" | head -1 | cut -d: -f1)
+              
+              if [ -n "$NEXT_SECTION" ]; then
+                # Calculate end line
+                END_LINE=$((SECTION_START + NEXT_SECTION - 1))
+                # Extract content
+                CHANGELOG_CONTENT=$(sed -n "$((SECTION_START+1)),$END_LINE p" CHANGELOG.md)
+              else
+                # Extract from start to end of file if no next section
+                CHANGELOG_CONTENT=$(tail -n +$((SECTION_START+1)) CHANGELOG.md)
+              fi
+              
+              echo "Extracted changelog content:"
+              echo "$CHANGELOG_CONTENT"
             else
               # Fallback to git log if not in CHANGELOG.md
               echo "No entry found in CHANGELOG.md, generating from git log"
@@ -87,11 +101,11 @@ jobs:
           echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Create changelog file
+      - name: Create temporary changelog file for release
         run: |
-          echo "# Changelog for v${{ steps.get_version.outputs.VERSION }}" > CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          echo "${{ steps.changelog.outputs.changelog }}" >> CHANGELOG.md
+          echo "# Changelog for v${{ steps.get_version.outputs.VERSION }}" > TEMP_CHANGELOG.md
+          echo "" >> TEMP_CHANGELOG.md
+          echo "${{ steps.changelog.outputs.changelog }}" >> TEMP_CHANGELOG.md
 
       - name: Determine if prerelease
         id: prerelease
@@ -112,6 +126,6 @@ jobs:
         with:
           tag_name: ${{ github.event_name == 'push' && github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.get_version.outputs.VERSION) }}
           name: v${{ steps.get_version.outputs.VERSION }}
-          body_path: CHANGELOG.md
+          body_path: TEMP_CHANGELOG.md
           prerelease: ${{ steps.prerelease.outputs.IS_PRERELEASE }}
           token: ${{ secrets.GITHUB_TOKEN }}
