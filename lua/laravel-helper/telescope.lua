@@ -119,21 +119,16 @@ function M.setup(core)
           end,
         }),
         sorter = conf.generic_sorter(opts),
-        previewer = {
-          -- Custom previewer that shows command help
-          new = function(_, _)
-            return require("telescope.previewers").new_buffer_previewer({
-              title = "Artisan Command Help",
-              get_buffer_by_name = function(_, entry)
-                return entry.value
-              end,
-              define_preview = function(self, entry)
-                local help_text = entry.preview_command or "No help available for this command"
-                vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, vim.split(help_text, "\n"))
-              end,
-            })
+        previewer = require("telescope.previewers").new_buffer_previewer({
+          title = "Artisan Command Help",
+          get_buffer_by_name = function(_, entry)
+            return entry.value
           end,
-        },
+          define_preview = function(self, entry)
+            local help_text = entry.preview_command or "No help available for this command"
+            vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, vim.split(help_text, "\n"))
+          end,
+        }),
         attach_mappings = function(prompt_bufnr, map)
           -- Execute the selected artisan command with Telescope output
           local run_command = function()
@@ -307,40 +302,35 @@ function M.setup(core)
           end,
         }),
         sorter = conf.generic_sorter(opts),
-        previewer = {
-          -- Custom route previewer with better formatting
-          new = function(_, _)
-            return require("telescope.previewers").new_buffer_previewer({
-              title = "Route Details",
-              get_buffer_by_name = function(_, entry)
-                return entry.value.uri
-              end,
-              define_preview = function(self, entry)
-                local lines = {
-                  "Route Details:",
-                  "-------------",
-                  "Method:  " .. entry.route_method,
-                  "URI:     " .. entry.route_uri,
-                  "Name:    " .. (entry.route_name ~= "" and entry.route_name or "(unnamed)"),
-                  "Action:  " .. entry.route_action,
-                  "",
-                  "URL Example:",
-                  "------------",
-                }
-
-                -- Build example URL
-                local url = entry.route_uri:gsub("{([^}]+)}", function(param)
-                  return ":" .. param
-                end)
-
-                table.insert(lines, "http://localhost/" .. url:gsub("^/", ""))
-
-                vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
-                vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "markdown")
-              end,
-            })
+        previewer = require("telescope.previewers").new_buffer_previewer({
+          title = "Route Details",
+          get_buffer_by_name = function(_, entry)
+            return entry.value.uri
           end,
-        },
+          define_preview = function(self, entry)
+            local lines = {
+              "Route Details:",
+              "-------------",
+              "Method:  " .. entry.route_method,
+              "URI:     " .. entry.route_uri,
+              "Name:    " .. (entry.route_name ~= "" and entry.route_name or "(unnamed)"),
+              "Action:  " .. entry.route_action,
+              "",
+              "URL Example:",
+              "------------",
+            }
+
+            -- Build example URL
+            local url = entry.route_uri:gsub("{([^}]+)}", function(param)
+              return ":" .. param
+            end)
+
+            table.insert(lines, "http://localhost/" .. url:gsub("^/", ""))
+
+            vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+            vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "markdown")
+          end,
+        }),
       })
       :find()
   end
@@ -399,80 +389,75 @@ function M.setup(core)
           end,
         }),
         sorter = conf.generic_sorter(opts),
-        previewer = {
-          -- Enhanced model previewer that shows model structure
-          new = function(_, _)
-            return require("telescope.previewers").new_buffer_previewer({
-              title = "Model Preview",
-              get_buffer_by_name = function(_, entry)
-                return entry.filename
-              end,
-              define_preview = function(self, entry)
-                -- First show the file content
-                local filename = entry.filename
-                local cat_cmd = "cat " .. vim.fn.shellescape(filename)
-                local content = vim.fn.system(cat_cmd)
-
-                -- Set filetype for syntax highlighting
-                vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, vim.split(content, "\n"))
-                vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "php")
-
-                -- Try to extract model properties using grep
-                local project_root = core.find_laravel_root()
-                if project_root then
-                  -- Use deferreed loading to not block the UI
-                  vim.defer_fn(function()
-                    -- Try to find model properties using sail tinker or php
-                    local model_name = vim.fn.fnamemodify(filename, ":t:r")
-                    local cmd_info = core.with_sail_or_php(
-                      'php artisan tinker --execute="try { '
-                        .. "echo 'Model: "
-                        .. model_name
-                        .. "\\n\\n'; "
-                        .. "echo 'Table: ' . (new \\App\\Models\\"
-                        .. model_name
-                        .. ")->getTable() . '\\n\\n'; "
-                        .. "echo 'Fillable: ' . json_encode((new \\App\\Models\\"
-                        .. model_name
-                        .. ")->getFillable(), JSON_PRETTY_PRINT) . '\\n\\n'; "
-                        .. "echo 'Properties: \\n'; "
-                        .. "} catch (\\Exception \\$e) { "
-                        .. "echo 'Error: ' . \\$e->getMessage(); "
-                        .. '}"'
-                    )
-
-                    if cmd_info then
-                      -- Run the command to get model info
-                      local model_info = vim.fn.system(cmd_info.command)
-                      if model_info and #model_info > 0 and not model_info:match("Error:") then
-                        -- Add the model info at the top of the buffer
-                        local info_lines = vim.split(model_info, "\n")
-                        local existing_lines = vim.api.nvim_buf_get_lines(self.state.bufnr, 0, -1, false)
-                        local combined_lines = {}
-
-                        -- Add a separator between model info and code
-                        table.insert(info_lines, "")
-                        table.insert(info_lines, "/* " .. string.rep("-", 50) .. " */")
-                        table.insert(info_lines, "/* Source Code: */")
-                        table.insert(info_lines, "")
-
-                        -- Combine info with existing content
-                        for _, line in ipairs(info_lines) do
-                          table.insert(combined_lines, line)
-                        end
-                        for _, line in ipairs(existing_lines) do
-                          table.insert(combined_lines, line)
-                        end
-
-                        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, combined_lines)
-                      end
-                    end
-                  end, 100) -- Small delay to allow preview to show first
-                end
-              end,
-            })
+        previewer = require("telescope.previewers").new_buffer_previewer({
+          title = "Model Preview",
+          get_buffer_by_name = function(_, entry)
+            return entry.filename
           end,
-        },
+          define_preview = function(self, entry)
+            -- First show the file content
+            local filename = entry.filename
+            local cat_cmd = "cat " .. vim.fn.shellescape(filename)
+            local content = vim.fn.system(cat_cmd)
+
+            -- Set filetype for syntax highlighting
+            vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, vim.split(content, "\n"))
+            vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "php")
+
+            -- Try to extract model properties using grep
+            local project_root = core.find_laravel_root()
+            if project_root then
+              -- Use deferreed loading to not block the UI
+              vim.defer_fn(function()
+                -- Try to find model properties using sail tinker or php
+                local model_name = vim.fn.fnamemodify(filename, ":t:r")
+                local cmd_info = core.with_sail_or_php(
+                  'php artisan tinker --execute="try { '
+                    .. "echo 'Model: "
+                    .. model_name
+                    .. "\\n\\n'; "
+                    .. "echo 'Table: ' . (new \\App\\Models\\"
+                    .. model_name
+                    .. ")->getTable() . '\\n\\n'; "
+                    .. "echo 'Fillable: ' . json_encode((new \\App\\Models\\"
+                    .. model_name
+                    .. ")->getFillable(), JSON_PRETTY_PRINT) . '\\n\\n'; "
+                    .. "echo 'Properties: \\n'; "
+                    .. "} catch (\\Exception \\$e) { "
+                    .. "echo 'Error: ' . \\$e->getMessage(); "
+                    .. '}"'
+                )
+
+                if cmd_info then
+                  -- Run the command to get model info
+                  local model_info = vim.fn.system(cmd_info.command)
+                  if model_info and #model_info > 0 and not model_info:match("Error:") then
+                    -- Add the model info at the top of the buffer
+                    local info_lines = vim.split(model_info, "\n")
+                    local existing_lines = vim.api.nvim_buf_get_lines(self.state.bufnr, 0, -1, false)
+                    local combined_lines = {}
+
+                    -- Add a separator between model info and code
+                    table.insert(info_lines, "")
+                    table.insert(info_lines, "/* " .. string.rep("-", 50) .. " */")
+                    table.insert(info_lines, "/* Source Code: */")
+                    table.insert(info_lines, "")
+
+                    -- Combine info with existing content
+                    for _, line in ipairs(info_lines) do
+                      table.insert(combined_lines, line)
+                    end
+                    for _, line in ipairs(existing_lines) do
+                      table.insert(combined_lines, line)
+                    end
+
+                    vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, combined_lines)
+                  end
+                end
+              end, 100) -- Small delay to allow preview to show first
+            end
+          end,
+        }),
         attach_mappings = function(prompt_bufnr, map)
           actions.select_default:replace(function()
             local selection = action_state.get_selected_entry()
