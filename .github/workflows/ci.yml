@@ -38,7 +38,7 @@ jobs:
         uses: JohnnyMorganz/stylua-action@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          version: latest
+          version: v0.20.0
           args: --check lua/
         
       - name: Run Luacheck
