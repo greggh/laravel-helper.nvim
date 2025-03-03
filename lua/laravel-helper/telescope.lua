@@ -253,10 +253,12 @@ function M.setup(core)
                     vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
                     vim.api.nvim_buf_set_option(buf, "filetype", "artisan-output")
                     vim.api.nvim_buf_set_option(buf, "modifiable", true)
+                    vim.api.nvim_buf_set_option(buf, "buftype", "nofile") -- Make it a scratch buffer
+                    vim.api.nvim_buf_set_option(buf, "swapfile", false) -- No need for a swapfile
 
                     -- Set the content
                     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-                    vim.api.nvim_buf_set_option(buf, "modifiable", false)
+                    vim.api.nvim_buf_set_option(buf, "modifiable", false) -- Prevent editing
 
                     -- Calculate window dimensions
                     local width = math.min(vim.o.columns - 4, math.max(80, vim.o.columns - 20))
@@ -283,6 +285,9 @@ function M.setup(core)
                     vim.api.nvim_win_set_option(win, "cursorline", true)
                     vim.api.nvim_win_set_option(win, "winhl", "Normal:TelescopeNormal,FloatBorder:TelescopeBorder")
 
+                    -- Ensure we're in normal mode, not insert mode
+                    vim.cmd("stopinsert")
+
                     -- Add key mappings to close the window
                     local keymaps = {
                       ["q"] = true,
@@ -291,7 +296,15 @@ function M.setup(core)
                     }
 
                     for key, _ in pairs(keymaps) do
+                      -- Add mapping for normal mode
                       vim.api.nvim_buf_set_keymap(buf, "n", key, "<cmd>bdelete!<CR>", {
+                        noremap = true,
+                        silent = true,
+                        nowait = true,
+                      })
+
+                      -- Also add mapping for insert mode
+                      vim.api.nvim_buf_set_keymap(buf, "i", key, "<cmd>bdelete!<CR>", {
                         noremap = true,
                         silent = true,
                         nowait = true,
