@@ -87,8 +87,18 @@ function M.setup(core)
     -- Sort commands alphabetically
     table.sort(commands)
 
-    -- Set default theme to ivy for better preview
-    opts.theme = opts.theme or "ivy"
+    -- Set default layout with prompt at the top
+    opts.theme = nil -- Remove the ivy theme which puts prompt at bottom
+    opts.layout_strategy = "vertical"
+    opts.layout_config = {
+      vertical = {
+        prompt_position = "top",
+        mirror = false,
+        width = 0.8,
+        height = 0.8,
+        preview_height = 0.5,
+      },
+    }
 
     -- Create command details for preview
     local command_details = {}
@@ -185,7 +195,19 @@ function M.setup(core)
 
                     -- Display the output in a Telescope buffer
                     pickers
-                      .new({ theme = "ivy" }, {
+                      .new({
+                        -- Use layout with prompt at the top
+                        theme = nil,
+                        layout_strategy = "vertical",
+                        layout_config = {
+                          vertical = {
+                            prompt_position = "top",
+                            mirror = false,
+                            width = 0.8,
+                            height = 0.8,
+                          },
+                        },
+                      }, {
                         prompt_title = "Artisan Command: " .. input,
                         finder = finders.new_table({
                           results = lines,
@@ -199,12 +221,6 @@ function M.setup(core)
                         }),
                         sorter = conf.generic_sorter({}),
                         previewer = false, -- No previewer needed for command output
-                        layout_strategy = "vertical",
-                        layout_config = {
-                          height = 0.8,
-                          width = 0.8,
-                          preview_height = 0.5,
-                        },
                       })
                       :find()
                   end
@@ -229,8 +245,18 @@ function M.setup(core)
   -- Define the routes picker function
   local function routes_picker(opts)
     opts = opts or {}
-    -- Set default theme to ivy for better preview
-    opts.theme = opts.theme or "ivy"
+    -- Set default layout with prompt at the top
+    opts.theme = nil -- Remove the ivy theme which puts prompt at bottom
+    opts.layout_strategy = "vertical"
+    opts.layout_config = {
+      vertical = {
+        prompt_position = "top",
+        mirror = false,
+        width = 0.8,
+        height = 0.8,
+        preview_height = 0.5,
+      },
+    }
 
     -- Get laravel root directory
     local laravel_root = core.find_laravel_root()
@@ -338,8 +364,18 @@ function M.setup(core)
   -- Define the models picker function
   local function models_picker(opts)
     opts = opts or {}
-    -- Set default theme to ivy for better preview
-    opts.theme = opts.theme or "ivy"
+    -- Set default layout with prompt at the top
+    opts.theme = nil -- Remove the ivy theme which puts prompt at bottom
+    opts.layout_strategy = "vertical"
+    opts.layout_config = {
+      vertical = {
+        prompt_position = "top",
+        mirror = false,
+        width = 0.8,
+        height = 0.8,
+        preview_height = 0.5,
+      },
+    }
 
     -- Get laravel root directory
     local laravel_root = core.find_laravel_root()
