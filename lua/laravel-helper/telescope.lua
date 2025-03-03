@@ -6,6 +6,10 @@
 
 local M = {}
 
+-- Cache for artisan commands to improve load time
+local artisan_commands_cache = nil
+local artisan_help_cache = {}
+
 --- Check if telescope is available
 local function has_telescope()
   local telescope_available, telescope_module = pcall(require, "telescope")
@@ -45,71 +49,93 @@ function M.setup(core)
   local function artisan_picker(opts)
     opts = opts or {}
 
-    -- Common artisan commands as initial suggestions
-    local commands = {
-      "route:list",
-      "migrate",
-      "migrate:status",
-      "db:seed",
-      "cache:clear",
-      "config:clear",
-      "view:clear",
-      "key:generate",
-      "serve",
-      "make:controller",
-      "make:model",
-      "make:migration",
-      "make:seeder",
-      "make:middleware",
-      "make:policy",
-      "make:command",
-      "make:request",
-      "tinker",
-    }
+    -- Get commands from cache or load them
+    local commands = {}
 
-    -- Add available commands if possible by running artisan list
-    local laravel_root = core.find_laravel_root()
-    if laravel_root then
-      local cmd_info = core.with_sail_or_php("php artisan list --raw")
-      if cmd_info then
-        local handle = io.popen(cmd_info.command)
-        if handle then
-          for line in handle:lines() do
-            if not vim.tbl_contains(commands, line) and line:match("^[%w:-]+$") then
-              table.insert(commands, line)
+    -- Check for existing cache
+    if artisan_commands_cache then
+      vim.notify("Laravel Helper: Using cached artisan commands", vim.log.levels.DEBUG)
+      commands = vim.deepcopy(artisan_commands_cache)
+    else
+      vim.notify("Laravel Helper: Building artisan commands cache", vim.log.levels.INFO)
+
+      -- Start with common artisan commands as initial suggestions
+      commands = {
+        "route:list",
+        "migrate",
+        "migrate:status",
+        "db:seed",
+        "cache:clear",
+        "config:clear",
+        "view:clear",
+        "key:generate",
+        "serve",
+        "make:controller",
+        "make:model",
+        "make:migration",
+        "make:seeder",
+        "make:middleware",
+        "make:policy",
+        "make:command",
+        "make:request",
+        "tinker",
+      }
+
+      -- Add available commands if possible by running artisan list
+      local laravel_root = core.find_laravel_root()
+      if laravel_root then
+        local cmd_info = core.with_sail_or_php("php artisan list --raw")
+        if cmd_info then
+          local handle = io.popen(cmd_info.command)
+          if handle then
+            for line in handle:lines() do
+              if not vim.tbl_contains(commands, line) and line:match("^[%w:-]+$") then
+                table.insert(commands, line)
+              end
             end
+            handle:close()
           end
-          handle:close()
         end
       end
+
+      -- Sort commands alphabetically
+      table.sort(commands)
+
+      -- Store in cache for future use
+      artisan_commands_cache = vim.deepcopy(commands)
     end
 
-    -- Sort commands alphabetically
-    table.sort(commands)
-
-    -- Set default layout with prompt at the top
+    -- Set default layout with prompt at the top and preview pane on the right
     opts.theme = nil -- Remove the ivy theme which puts prompt at bottom
-    opts.layout_strategy = "vertical"
+    opts.layout_strategy = "horizontal" -- Use horizontal layout for side-by-side preview
     opts.layout_config = {
-      vertical = {
+      horizontal = {
         prompt_position = "top",
-        mirror = false,
-        width = 0.8,
-        height = 0.8,
-        preview_height = 0.5,
+        preview_width = 0.5, -- Show preview on the right half
+        width = 0.9,
+        height = 0.9,
       },
     }
 
-    -- Create command details for preview
+    -- Create or use cached command details for preview
     local command_details = {}
+
+    -- Process command help info, using cache when available
     for _, cmd_name in ipairs(commands) do
-      -- Try to get help info for the command
-      local root_dir = core.find_laravel_root()
-      if root_dir then
-        local info = core.with_sail_or_php("php artisan help " .. cmd_name .. " --no-ansi 2>/dev/null")
-        if info then
-          local help_output = vim.fn.system(info.command)
-          command_details[cmd_name] = help_output
+      if artisan_help_cache[cmd_name] then
+        -- Use cached help info
+        command_details[cmd_name] = artisan_help_cache[cmd_name]
+      else
+        -- Get help info for the command
+        local root_dir = core.find_laravel_root()
+        if root_dir then
+          local info = core.with_sail_or_php("php artisan help " .. cmd_name .. " --no-ansi 2>/dev/null")
+          if info then
+            local help_output = vim.fn.system(info.command)
+            command_details[cmd_name] = help_output
+            -- Cache for future use
+            artisan_help_cache[cmd_name] = help_output
+          end
         end
       end
     end
@@ -198,13 +224,13 @@ function M.setup(core)
                       .new({
                         -- Use layout with prompt at the top
                         theme = nil,
-                        layout_strategy = "vertical",
+                        layout_strategy = "horizontal",
                         layout_config = {
-                          vertical = {
+                          horizontal = {
                             prompt_position = "top",
-                            mirror = false,
-                            width = 0.8,
-                            height = 0.8,
+                            preview_width = 0.5,
+                            width = 0.9,
+                            height = 0.9,
                           },
                         },
                       }, {
@@ -245,16 +271,15 @@ function M.setup(core)
   -- Define the routes picker function
   local function routes_picker(opts)
     opts = opts or {}
-    -- Set default layout with prompt at the top
+    -- Set default layout with prompt at the top and preview pane on the right
     opts.theme = nil -- Remove the ivy theme which puts prompt at bottom
-    opts.layout_strategy = "vertical"
+    opts.layout_strategy = "horizontal" -- Use horizontal layout for side-by-side preview
     opts.layout_config = {
-      vertical = {
+      horizontal = {
         prompt_position = "top",
-        mirror = false,
-        width = 0.8,
-        height = 0.8,
-        preview_height = 0.5,
+        preview_width = 0.5, -- Show preview on the right half
+        width = 0.9,
+        height = 0.9,
       },
     }
 
@@ -364,16 +389,15 @@ function M.setup(core)
   -- Define the models picker function
   local function models_picker(opts)
     opts = opts or {}
-    -- Set default layout with prompt at the top
+    -- Set default layout with prompt at the top and preview pane on the right
     opts.theme = nil -- Remove the ivy theme which puts prompt at bottom
-    opts.layout_strategy = "vertical"
+    opts.layout_strategy = "horizontal" -- Use horizontal layout for side-by-side preview
     opts.layout_config = {
-      vertical = {
+      horizontal = {
         prompt_position = "top",
-        mirror = false,
-        width = 0.8,
-        height = 0.8,
-        preview_height = 0.5,
+        preview_width = 0.5, -- Show preview on the right half
+        width = 0.9,
+        height = 0.9,
       },
     }
 
