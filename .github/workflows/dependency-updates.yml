@@ -18,28 +18,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Check GitHub Actions for updates
+      - name: Check GitHub Actions for updates manually
         id: actions-check
-        uses: sethvargo/action-github-actions-updater@v1
-        with:
-          workflows: .github/workflows/*.yml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: true
+        run: |
+          echo "Checking for GitHub Action updates"
+          # Create a report of current GitHub Actions used
+          echo "" > actions_changes.txt
+          grep -r "uses:" --include="*.yml" .github/workflows/ | sort | uniq > current_actions.txt
+          echo "Current GitHub Actions:" >> actions_changes.txt
+          cat current_actions.txt >> actions_changes.txt
 
       - name: Create Actions Update Report
         run: |
           echo "# GitHub Actions Updates" > actions_updates.md
           echo "" >> actions_updates.md
-          echo "## Available Updates" >> actions_updates.md
+          echo "## Current Actions" >> actions_updates.md
           echo "" >> actions_updates.md
-          
-          if [[ -n "${{ steps.actions-check.outputs.changes }}" ]]; then
-            echo "${{ steps.actions-check.outputs.changes }}" >> actions_updates.md
-            echo "" >> actions_updates.md
-            echo "These updates can be automatically applied by running this workflow with the dry-run option set to false." >> actions_updates.md
-          else
-            echo "All GitHub Actions are up to date\!" >> actions_updates.md
-          fi
+          echo "The following GitHub Actions are used in this repository:" >> actions_updates.md
+          echo "" >> actions_updates.md
+          echo "```" >> actions_updates.md
+          cat current_actions.txt >> actions_updates.md
+          echo "```" >> actions_updates.md
+          echo "" >> actions_updates.md
+          echo "To check for updates, visit the GitHub repositories for these actions." >> actions_updates.md
           
       - name: Upload Actions Report
         uses: actions/upload-artifact@v4
