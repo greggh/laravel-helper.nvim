@@ -1,6 +1,9 @@
 name: Release
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       version:
@@ -14,48 +17,101 @@ on:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          
+      - name: Get version from tag or input
+        id: get_version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            # Extract version from the tag (remove 'v' prefix)
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+            echo "Using version from tag: ${VERSION}"
+          else
+            # For manual workflow dispatch
+            VERSION="${{ github.event.inputs.version }}"
+            echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+            echo "Using provided version: ${VERSION}"
+          fi
 
       - name: Validate version format
+        if: github.event_name == 'workflow_dispatch'
         run: |
-          echo "Validating version format: ${{ github.event.inputs.version }}"
-          if ! [[ ${{ github.event.inputs.version }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Validating version format: ${{ steps.get_version.outputs.VERSION }}"
+          if ! [[ ${{ steps.get_version.outputs.VERSION }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Version must be in the format X.Y.Z"
             exit 1
           fi
 
       - name: Check tag doesn't already exist
+        if: github.event_name == 'workflow_dispatch'
         run: |
-          if git rev-parse "v${{ github.event.inputs.version }}" >/dev/null 2>&1; then
-            echo "::error::Tag v${{ github.event.inputs.version }} already exists"
+          if git rev-parse "v${{ steps.get_version.outputs.VERSION }}" >/dev/null 2>&1; then
+            echo "::error::Tag v${{ steps.get_version.outputs.VERSION }} already exists"
             exit 1
           fi
 
       - name: Generate changelog
         id: changelog
         run: |
-          # Generate changelog from git history
-          CHANGELOG=$(git log --pretty=format:"* %s (%an)" $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD~50)..HEAD)
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            # For tag pushes, extract from CHANGELOG.md if it exists
+            VERSION="${{ steps.get_version.outputs.VERSION }}"
+            if grep -q "## \[${VERSION}\]" CHANGELOG.md; then
+              echo "Extracting changelog for v${VERSION} from CHANGELOG.md"
+              CHANGELOG_CONTENT=$(awk -v ver="## [${VERSION}]" '
+                BEGIN { printing = 0; content = ""; }
+                $0 ~ ver { printing = 1; next; }
+                /^## \[/ { if (printing == 1) { printing = 0; } }
+                { if (printing == 1) content = content $0 "\n"; }
+                END { print content; }
+              ' CHANGELOG.md)
+            else
+              # Fallback to git log if not in CHANGELOG.md
+              echo "No entry found in CHANGELOG.md, generating from git log"
+              CHANGELOG_CONTENT=$(git log --pretty=format:"* %s (%an)" $(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo HEAD~50)..HEAD)
+            fi
+          else
+            # For manual workflow, use git log from previous tag to HEAD
+            echo "Generating changelog from git log"
+            CHANGELOG_CONTENT=$(git log --pretty=format:"* %s (%an)" $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD~50)..HEAD)
+          fi
           
           # Format for GitHub Actions output
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create changelog file
         run: |
-          echo "# Changelog for v${{ github.event.inputs.version }}" > CHANGELOG.md
+          echo "# Changelog for v${{ steps.get_version.outputs.VERSION }}" > CHANGELOG.md
           echo "" >> CHANGELOG.md
           echo "${{ steps.changelog.outputs.changelog }}" >> CHANGELOG.md
+
+      - name: Determine if prerelease
+        id: prerelease
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            # Check if tag contains 'alpha', 'beta', 'rc', etc.
+            if [[ "${{ github.ref_name }}" =~ -alpha|-beta|-rc|dev|test ]]; then
+              echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT
+            else
+              echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "IS_PRERELEASE=${{ github.event.inputs.prerelease }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ github.event.inputs.version }}
-          name: v${{ github.event.inputs.version }}
+          tag_name: ${{ github.event_name == 'push' && github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.get_version.outputs.VERSION) }}
+          name: v${{ steps.get_version.outputs.VERSION }}
           body_path: CHANGELOG.md
-          prerelease: ${{ github.event.inputs.prerelease }}
+          prerelease: ${{ steps.prerelease.outputs.IS_PRERELEASE }}
           token: ${{ secrets.GITHUB_TOKEN }}
