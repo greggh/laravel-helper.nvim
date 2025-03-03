@@ -127,7 +127,7 @@ function M.setup(user_config)
     -- Create separate functions for each telescope picker to use directly
     vim.defer_fn(function()
       -- Get functions from our telescope module
-      local telescope_module = require("laravel-helper.telescope")
+      local telescope_ext = require("laravel-helper.telescope")
 
       vim.notify("Laravel Helper: Creating user command LaravelTelescope", vim.log.levels.INFO)
 
@@ -138,19 +138,19 @@ function M.setup(user_config)
         vim.notify("Laravel Helper: Running LaravelTelescope command: " .. subcmd, vim.log.levels.INFO)
 
         -- Get the telescope object directly for reliability
-        local telescope = require("telescope")
+        local telescope_obj = require("telescope")
 
         -- Make sure our extension exists
-        if telescope.extensions and telescope.extensions.laravel then
+        if telescope_obj.extensions and telescope_obj.extensions.laravel then
           vim.notify("Laravel Helper: Extension found, executing " .. subcmd, vim.log.levels.INFO)
 
           -- Check that the requested subcommand exists
-          if subcmd == "artisan" and type(telescope.extensions.laravel.artisan) == "function" then
-            telescope.extensions.laravel.artisan()
-          elseif subcmd == "routes" and type(telescope.extensions.laravel.routes) == "function" then
-            telescope.extensions.laravel.routes()
-          elseif subcmd == "models" and type(telescope.extensions.laravel.models) == "function" then
-            telescope.extensions.laravel.models()
+          if subcmd == "artisan" and type(telescope_obj.extensions.laravel.artisan) == "function" then
+            telescope_obj.extensions.laravel.artisan()
+          elseif subcmd == "routes" and type(telescope_obj.extensions.laravel.routes) == "function" then
+            telescope_obj.extensions.laravel.routes()
+          elseif subcmd == "models" and type(telescope_obj.extensions.laravel.models) == "function" then
+            telescope_obj.extensions.laravel.models()
           else
             vim.notify("Unknown or unavailable Laravel Telescope command: " .. subcmd, vim.log.levels.WARN)
           end
@@ -171,9 +171,13 @@ function M.setup(user_config)
       -- Also add individual commands for each picker for easier access
       vim.api.nvim_create_user_command("LaravelArtisan", function()
         -- Get fresh reference to telescope every time
-        local telescope = require("telescope")
-        if telescope.extensions and telescope.extensions.laravel and telescope.extensions.laravel.artisan then
-          telescope.extensions.laravel.artisan()
+        local telescope_api = require("telescope")
+        if
+          telescope_api.extensions
+          and telescope_api.extensions.laravel
+          and telescope_api.extensions.laravel.artisan
+        then
+          telescope_api.extensions.laravel.artisan()
         else
           vim.notify("Telescope Laravel artisan picker not available", vim.log.levels.ERROR)
         end
@@ -181,9 +185,13 @@ function M.setup(user_config)
 
       vim.api.nvim_create_user_command("LaravelRoutes", function()
         -- Get fresh reference to telescope every time
-        local telescope = require("telescope")
-        if telescope.extensions and telescope.extensions.laravel and telescope.extensions.laravel.routes then
-          telescope.extensions.laravel.routes()
+        local telescope_api = require("telescope")
+        if
+          telescope_api.extensions
+          and telescope_api.extensions.laravel
+          and telescope_api.extensions.laravel.routes
+        then
+          telescope_api.extensions.laravel.routes()
         else
           vim.notify("Telescope Laravel routes picker not available", vim.log.levels.ERROR)
         end
@@ -191,9 +199,13 @@ function M.setup(user_config)
 
       vim.api.nvim_create_user_command("LaravelModels", function()
         -- Get fresh reference to telescope every time
-        local telescope = require("telescope")
-        if telescope.extensions and telescope.extensions.laravel and telescope.extensions.laravel.models then
-          telescope.extensions.laravel.models()
+        local telescope_api = require("telescope")
+        if
+          telescope_api.extensions
+          and telescope_api.extensions.laravel
+          and telescope_api.extensions.laravel.models
+        then
+          telescope_api.extensions.laravel.models()
         else
           vim.notify("Telescope Laravel models picker not available", vim.log.levels.ERROR)
         end
