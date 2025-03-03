@@ -220,6 +220,8 @@ function M.setup(core)
                         -- Use layout with prompt at the top
                         theme = nil,
                         layout_strategy = "horizontal",
+                        initial_mode = "normal", -- Start in normal mode to prevent automatic insertion
+                        default_text = "", -- Clear any default text in prompt
                         layout_config = {
                           horizontal = {
                             prompt_position = "top",
@@ -253,7 +255,7 @@ function M.setup(core)
                           return true
                         end,
                       })
-                      :find()
+                      :find("") -- Explicitly pass empty string to find to clear filter
                   end
 
                   -- Run our new function instead of the core one
