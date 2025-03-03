@@ -92,6 +92,9 @@ function M.setup(user_config)
 
     -- Setup telescope integration
     vim.defer_fn(function()
+      -- Add debug notification for telescope extension loading
+      vim.notify("Laravel Helper: Starting Telescope integration setup", vim.log.levels.INFO)
+
       -- Wrap everything in pcall to prevent any errors from breaking setup
       local ok, err = pcall(function()
         telescope_module.setup(M.core)
@@ -101,12 +104,25 @@ function M.setup(user_config)
 
         -- Add mapping to M for direct access
         M.telescope = telescope_module
+
+        -- Log successful registration
+        vim.notify("Laravel Helper: Telescope integration setup complete", vim.log.levels.INFO)
+
+        -- Verify if the extension is properly registered
+        local has_ext, _ = pcall(function()
+          return require("telescope").extensions.laravel
+        end)
+        if has_ext then
+          vim.notify("Laravel Helper: Telescope extension 'laravel' is registered successfully", vim.log.levels.INFO)
+        else
+          vim.notify("Laravel Helper: Telescope extension 'laravel' is NOT registered properly", vim.log.levels.ERROR)
+        end
       end)
 
       if not ok then
-        vim.notify("Failed to initialize Laravel Telescope integration: " .. tostring(err), vim.log.levels.DEBUG)
+        vim.notify("Failed to initialize Laravel Telescope integration: " .. tostring(err), vim.log.levels.ERROR)
       end
-    end, 200) -- Give telescope time to fully initialize
+    end, 500) -- Increase timeout to give telescope more time to initialize
 
     -- Add user command for Laravel Telescope extension, but do it with a delay
     -- to ensure telescope has time to properly load extensions

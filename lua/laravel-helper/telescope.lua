@@ -8,7 +8,22 @@ local M = {}
 
 --- Check if telescope is available
 local function has_telescope()
-  return pcall(require, "telescope")
+  local telescope_available, telescope_module = pcall(require, "telescope")
+  if telescope_available then
+    vim.notify("Laravel Helper: Telescope found and loaded", vim.log.levels.INFO)
+
+    -- Check if telescope has loaded its extensions mechanism
+    if telescope_module and telescope_module.extensions then
+      vim.notify("Laravel Helper: Telescope extensions table exists", vim.log.levels.INFO)
+    else
+      vim.notify("Laravel Helper: Telescope loaded but extensions table doesn't exist!", vim.log.levels.WARN)
+    end
+
+    return true
+  else
+    vim.notify("Laravel Helper: Telescope not found or not properly loaded", vim.log.levels.ERROR)
+    return false
+  end
 end
 
 --- Setup the Telescope extension
@@ -27,11 +42,13 @@ function M.setup(core)
   local conf = require("telescope.config").values
 
   -- Register the extension with the name "laravel"
+  vim.notify("Laravel Helper: Attempting to register Telescope extension 'laravel'", vim.log.levels.INFO)
+
   local success, err = pcall(function()
     telescope.register_extension({
       setup = function(ext_config, _)
         -- Configure the extension with default options
-        vim.tbl_deep_extend("force", {
+        local options = vim.tbl_deep_extend("force", {
           theme = "ivy", -- Use the ivy theme for better previews
           previewer = true, -- Enable previewing by default
           layout_config = {
@@ -39,6 +56,9 @@ function M.setup(core)
             width = 0.8,
           },
         }, ext_config or {})
+
+        vim.notify("Laravel Helper: Telescope extension setup called with theme " .. options.theme, vim.log.levels.INFO)
+        return options
       end,
       exports = {
         artisan = function(opts)
@@ -488,7 +508,23 @@ function M.setup(core)
   end)
 
   if not success then
-    vim.notify("Failed to register Laravel Telescope extension: " .. tostring(err), vim.log.levels.DEBUG)
+    vim.notify("Failed to register Laravel Telescope extension: " .. tostring(err), vim.log.levels.ERROR)
+    -- Try to diagnose the issue
+    local has_loaded, loaded_exts = pcall(function()
+      return require("telescope").extensions
+    end)
+
+    if has_loaded then
+      local available_exts = {}
+      for ext_name, _ in pairs(loaded_exts) do
+        table.insert(available_exts, ext_name)
+      end
+      vim.notify("Currently loaded Telescope extensions: " .. table.concat(available_exts, ", "), vim.log.levels.INFO)
+    else
+      vim.notify("Cannot access telescope.extensions - Telescope may not be fully initialized yet", vim.log.levels.WARN)
+    end
+  else
+    vim.notify("Laravel Helper: Successfully registered Telescope extension", vim.log.levels.INFO)
   end
 end
 
