@@ -46,7 +46,7 @@ files["tests/**/*.lua"] = {
     -- Test helpers
     "test", "expect",
     -- Global test state (allow modification)
-    "_G", 
+    "_G", "package",
   },
   
   -- Define fields for assert from luassert
@@ -70,14 +70,38 @@ files["tests/**/*.lua"] = {
   -- In tests, we're not concerned about these
   max_cyclomatic_complexity = false,
   
-  -- Don't report accessing/mutating globals that are needed for test frameworks
-  read_globals = {
-    "_G",      -- Global environment
-    "package", -- Package management
-  },
-  
   -- For test files only, ignore unused arguments as they're often used for mock callbacks
   unused_args = false,
+}
+
+-- Special configuration for spec files
+files["spec/**/*.lua"] = {
+  -- Allow common globals used in testing
+  globals = {
+    -- Common busted globals
+    "describe", "it", "before_each", "after_each", "teardown", "pending", "spy", "stub", "mock",
+    -- Lua standard utilities used in tests
+    "print", "dofile",
+    -- Luassert
+    "assert",
+    -- Global state that specs might modify
+    "_G", "vim", "package",
+  },
+  
+  -- Allow modification of globals in spec files
+  allow_defined_top = true,
+  
+  -- Disable module checking in specs
+  module = false,
+  
+  -- In specs, we're not concerned about these
+  max_cyclomatic_complexity = false,
+  
+  -- For specs, ignore unused arguments
+  unused_args = false,
+  
+  -- Set all standard globals as writable in specs
+  std = "+busted",
 }
 
 -- Allow unused self arguments of methods

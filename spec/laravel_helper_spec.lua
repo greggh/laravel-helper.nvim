@@ -6,25 +6,28 @@ describe("Laravel Helper", function()
 
   before_each(function()
     -- Mock vim namespace for testing
-    _G.vim = _G.vim or {}
-    _G.vim.fn = _G.vim.fn or {}
-    _G.vim.fn.filereadable = _G.vim.fn.filereadable
+    ---@diagnostic disable: lowercase-global
+    ---@diagnostic disable: duplicate-set-field
+    ---@diagnostic disable: inject-field
+    vim = vim or {}
+    vim.fn = vim.fn or {}
+    vim.fn.filereadable = vim.fn.filereadable
       or function(path)
         -- Simply return 1 for artisan files, 0 otherwise
         return path:match("artisan$") and 1 or 0
       end
-    _G.vim.fn.getcwd = _G.vim.fn.getcwd or function()
+    vim.fn.getcwd = vim.fn.getcwd or function()
       return "/test/project"
     end
-    _G.vim.fn.exists = _G.vim.fn.exists or function()
+    vim.fn.exists = vim.fn.exists or function()
       return 0
     end
-    _G.vim.g = _G.vim.g or {}
-    _G.vim.notify = _G.vim.notify or function() end
-    _G.vim.api = _G.vim.api or {}
-    _G.vim.api.nvim_create_autocmd = _G.vim.api.nvim_create_autocmd or function() end
-    _G.vim.log = _G.vim.log or { levels = { INFO = 2, WARN = 3, ERROR = 4 } }
-    _G.vim.tbl_deep_extend = _G.vim.tbl_deep_extend
+    vim.g = vim.g or {}
+    vim.notify = vim.notify or function() end
+    vim.api = vim.api or {}
+    vim.api.nvim_create_autocmd = vim.api.nvim_create_autocmd or function() end
+    vim.log = vim.log or { levels = { INFO = 2, WARN = 3, ERROR = 4 } }
+    vim.tbl_deep_extend = vim.tbl_deep_extend
       or function(_, tbl1, tbl2)
         local result = {}
         for k, v in pairs(tbl1 or {}) do
@@ -36,20 +39,28 @@ describe("Laravel Helper", function()
         return result
       end
 
-    _G.vim.validate = function() end
+    vim.validate = function() end
 
-    _G.vim.deepcopy = function(obj)
+    vim.deepcopy = function(obj)
       if type(obj) ~= "table" then
         return obj
       end
       local res = {}
       for k, v in pairs(obj) do
-        res[k] = _G.vim.deepcopy(v)
+        res[k] = vim.deepcopy(v)
       end
       return res
     end
+    ---@diagnostic enable: inject-field
+    ---@diagnostic enable: duplicate-set-field
+    ---@diagnostic enable: lowercase-global
 
     -- Reset modules to ensure clean testing
+    ---@diagnostic disable: inject-field
+    ---@diagnostic disable: lowercase-global
+    -- luacheck: ignore 122
+    package = package or {}
+    package.loaded = package.loaded or {}
     package.loaded["laravel-helper"] = nil
     package.loaded["laravel-helper.core"] = nil
     package.loaded["laravel-helper.commands"] = nil
@@ -79,6 +90,8 @@ describe("Laravel Helper", function()
     }
 
     package.loaded["laravel-helper.config"] = {
+      ---@diagnostic enable: inject-field
+      ---@diagnostic enable: lowercase-global
       setup = function() end,
       parse_config = function(user_config)
         local config = {
