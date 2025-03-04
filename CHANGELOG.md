@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.2] - 2025-03-03
 
+### Changed
+- Moved documentation validation to a dedicated workflow for better standardization
+- Improved test code structure with proper dependency injection and mocking
+
 ### Fixed
 - Fixed Telescope integration issues with autocompletion in Telescope prompts
 - Replaced problematic Telescope picker with custom floating window for artisan command output
