@@ -1,75 +1,60 @@
 -- laravel_helper_spec.lua
--- Simplified test specification for Laravel Helper plugin
+-- Test specification for Laravel Helper plugin using proper mocking approach
 
-describe("Laravel Helper", function()
-  local laravel_helper
+-- Define a proper MockNvim class to avoid global modifications
+local MockNvim = {}
 
-  before_each(function()
-    -- Mock vim namespace for testing
-    ---@diagnostic disable: lowercase-global
-    ---@diagnostic disable: duplicate-set-field
-    ---@diagnostic disable: inject-field
-    vim = vim or {}
-    vim.fn = vim.fn or {}
-    vim.fn.filereadable = vim.fn.filereadable
-      or function(path)
-        -- Simply return 1 for artisan files, 0 otherwise
+function MockNvim:new()
+  local instance = {
+    fn = {
+      filereadable = function(path)
+        -- Return 1 for artisan files, 0 otherwise
         return path:match("artisan$") and 1 or 0
+      end,
+      getcwd = function()
+        return "/test/project"
+      end,
+      exists = function()
+        return 0
+      end,
+    },
+    g = {},
+    notify = function() end,
+    api = {
+      nvim_create_autocmd = function() end,
+    },
+    log = { levels = { INFO = 2, WARN = 3, ERROR = 4 } },
+    tbl_deep_extend = function(_, tbl1, tbl2)
+      local result = {}
+      for k, v in pairs(tbl1 or {}) do
+        result[k] = v
       end
-    vim.fn.getcwd = vim.fn.getcwd or function()
-      return "/test/project"
-    end
-    vim.fn.exists = vim.fn.exists or function()
-      return 0
-    end
-    vim.g = vim.g or {}
-    vim.notify = vim.notify or function() end
-    vim.api = vim.api or {}
-    vim.api.nvim_create_autocmd = vim.api.nvim_create_autocmd or function() end
-    vim.log = vim.log or { levels = { INFO = 2, WARN = 3, ERROR = 4 } }
-    vim.tbl_deep_extend = vim.tbl_deep_extend
-      or function(_, tbl1, tbl2)
-        local result = {}
-        for k, v in pairs(tbl1 or {}) do
-          result[k] = v
-        end
-        for k, v in pairs(tbl2 or {}) do
-          result[k] = v
-        end
-        return result
+      for k, v in pairs(tbl2 or {}) do
+        result[k] = v
       end
-
-    vim.validate = function() end
-
-    vim.deepcopy = function(obj)
+      return result
+    end,
+    validate = function() end,
+    deepcopy = function(obj)
       if type(obj) ~= "table" then
         return obj
       end
       local res = {}
       for k, v in pairs(obj) do
-        res[k] = vim.deepcopy(v)
+        res[k] = self.deepcopy(v)
       end
       return res
-    end
-    ---@diagnostic enable: inject-field
-    ---@diagnostic enable: duplicate-set-field
-    ---@diagnostic enable: lowercase-global
+    end,
+  }
 
-    -- Reset modules to ensure clean testing
-    ---@diagnostic disable: inject-field
-    ---@diagnostic disable: lowercase-global
-    -- luacheck: ignore 122
-    package = package or {}
-    package.loaded = package.loaded or {}
-    package.loaded["laravel-helper"] = nil
-    package.loaded["laravel-helper.core"] = nil
-    package.loaded["laravel-helper.commands"] = nil
-    package.loaded["laravel-helper.health"] = nil
-    package.loaded["laravel-helper.version"] = nil
-    package.loaded["laravel-helper.config"] = nil
+  setmetatable(instance, { __index = MockNvim })
+  return instance
+end
 
-    -- Create a mock core module
-    package.loaded["laravel-helper.core"] = {
+-- Create mock modules using proper dependency injection
+local function create_mock_modules()
+  local modules = {
+    ["laravel-helper.core"] = {
       setup = function() end,
       find_laravel_root = function()
         return "/test/project"
@@ -78,20 +63,16 @@ describe("Laravel Helper", function()
         return true
       end,
       setup_auto_ide_helper = function() end,
-    }
-
-    package.loaded["laravel-helper.version"] = {
+    },
+    ["laravel-helper.version"] = {
       major = 0,
       minor = 4,
       patch = 2,
       string = function()
         return "0.4.2"
       end,
-    }
-
-    package.loaded["laravel-helper.config"] = {
-      ---@diagnostic enable: inject-field
-      ---@diagnostic enable: lowercase-global
+    },
+    ["laravel-helper.config"] = {
       setup = function() end,
       parse_config = function(user_config)
         local config = {
@@ -105,10 +86,81 @@ describe("Laravel Helper", function()
         end
         return config
       end,
+    },
+  }
+
+  return modules
+end
+
+-- Setup requires table for dependency injection
+local requires = {}
+local mock_modules = create_mock_modules()
+
+-- Custom require function for tests
+local function mock_require(module_name)
+  if requires[module_name] then
+    return requires[module_name]
+  end
+
+  if module_name == "laravel-helper" then
+    -- The actual module being tested needs special handling
+    -- Create a clean environment
+    local mock_env = {
+      require = function(dependency)
+        if mock_modules[dependency] then
+          return mock_modules[dependency]
+        end
+        error("Unexpected require: " .. dependency)
+      end,
     }
+
+    -- Get the actual module's content
+    local orig_require = _G.require
+    local content = orig_require(module_name)
+
+    -- Save it in our lookup table
+    requires[module_name] = content
+    return content
+  end
+
+  if mock_modules[module_name] then
+    requires[module_name] = mock_modules[module_name]
+    return mock_modules[module_name]
+  end
+
+  -- For other modules, use the real require
+  error("Unexpected module required: " .. module_name)
+end
+
+describe("Laravel Helper", function()
+  local laravel_helper
+  local mock_vim
+  local original_require
+
+  before_each(function()
+    -- Save original globals
+    original_require = _G.require
+
+    -- Create mock Neovim
+    mock_vim = MockNvim:new()
+
+    -- Temporarily override _G.vim for the module
+    _G.vim = mock_vim
+
+    -- Override the global require function
+    _G.require = mock_require
 
     -- Load the plugin module
     laravel_helper = require("laravel-helper")
+  end)
+
+  after_each(function()
+    -- Restore original globals
+    _G.require = original_require
+    _G.vim = nil
+
+    -- Clear requires cache
+    requires = {}
   end)
 
   describe("version", function()
