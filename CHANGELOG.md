@@ -5,6 +5,14 @@ All notable changes to Laravel Helper will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2025-03-03
+
+### Fixed
+- Fixed Telescope integration issues with autocompletion in Telescope prompts
+- Replaced problematic Telescope picker with custom floating window for artisan command output
+- Added documentation on how to properly disable autocompletion in Telescope and artisan output windows
+- Fixed test runner not properly exiting after tests
+
 ## [0.4.1] - 2025-03-03
 
 ### Changed

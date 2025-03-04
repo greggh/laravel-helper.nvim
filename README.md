@@ -8,7 +8,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/greggh/laravel-helper.nvim?style=flat-square)](https://github.com/greggh/laravel-helper.nvim/issues)
 [![Neovim Version](https://img.shields.io/badge/Neovim-0.8%2B-blueviolet?style=flat-square&logo=neovim)](https://github.com/neovim/neovim)
 [![Tests](https://img.shields.io/badge/Tests-40%20passing-success?style=flat-square&logo=github-actions)](https://github.com/greggh/laravel-helper.nvim/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/Version-0.4.1-blue?style=flat-square)](https://github.com/greggh/laravel-helper.nvim/releases/tag/v0.4.1)
+[![Version](https://img.shields.io/badge/Version-0.4.2-blue?style=flat-square)](https://github.com/greggh/laravel-helper.nvim/releases/tag/v0.4.2)
 
 *A comprehensive Laravel development environment for Neovim with focus on IDE Helper integration*
 
@@ -88,6 +88,25 @@ The following plugins provide the enhanced command interface with subcommands an
 
 Without mega.cmdparse, the plugin will fall back to the legacy command interface.
 Without telescope.nvim, the plugin will fall back to simple input prompts for Artisan commands.
+
+**Important**: To prevent autocompletion interference in Telescope prompts and artisan output windows, you need to disable completion in these filetypes:
+
+```lua
+-- For blink.cmp users
+require('blink.cmp').setup({
+  -- Other configuration options...
+  enabled = function()
+    local ignore_filetypes = {"TelescopePrompt", "TelescopeResults", "artisan-output"}
+    return not vim.tbl_contains(ignore_filetypes, vim.bo.filetype)
+  end,
+})
+
+-- For nvim-cmp users
+-- Disable for each filetype individually
+require("cmp").setup.filetype("TelescopePrompt", { enabled = false })
+require("cmp").setup.filetype("TelescopeResults", { enabled = false })
+require("cmp").setup.filetype("artisan-output", { enabled = false })
+```
 
 ### Recommended Laravel Ecosystem Plugins
 For a complete Laravel development environment, we recommend the following plugins:
