@@ -35,6 +35,13 @@ exclude_files = {
   "tests/plenary/*",
 }
 
+-- Special configuration for scripts
+files["scripts/**/*.lua"] = {
+  globals = {
+    "print", "arg",
+  },
+}
+
 -- Special configuration for test files
 files["tests/**/*.lua"] = {
   -- Allow common globals used in testing

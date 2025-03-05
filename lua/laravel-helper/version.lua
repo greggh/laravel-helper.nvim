@@ -11,16 +11,20 @@
 --- @field patch number Patch version (bug fixes)
 --- @field string function Returns formatted version string
 
-local M = {
-  major = 0,
-  minor = 4,
-  patch = 2,
-}
+local M = {}
 
---- Returns the formatted version string
+-- Individual version components
+M.major = 0
+M.minor = 4
+M.patch = 2
+
+-- Combined semantic version
+M.version = string.format("%d.%d.%d", M.major, M.minor, M.patch)
+
+--- Returns the formatted version string (for backward compatibility)
 --- @return string Version string in format "major.minor.patch"
 function M.string()
-  return string.format("%d.%d.%d", M.major, M.minor, M.patch)
+  return M.version
 end
 
 return M
