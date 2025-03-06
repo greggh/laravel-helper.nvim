@@ -9,6 +9,7 @@
 [![Neovim Version](https://img.shields.io/badge/Neovim-0.8%2B-blueviolet?style=flat-square&logo=neovim)](https://github.com/neovim/neovim)
 [![Tests](https://img.shields.io/badge/Tests-40%20passing-success?style=flat-square&logo=github-actions)](https://github.com/greggh/laravel-helper.nvim/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/Version-0.4.2-blue?style=flat-square)](https://github.com/greggh/laravel-helper.nvim/releases/tag/v0.4.2)
+[![Discussions](https://img.shields.io/github/discussions/greggh/laravel-helper.nvim?style=flat-square&logo=github)](https://github.com/greggh/laravel-helper.nvim/discussions)
 
 *A comprehensive Laravel development environment for Neovim with focus on IDE Helper integration*
 
@@ -63,14 +64,14 @@ Projects we aim to integrate with include:
 
 ## Features
 
-- Automatic detection of Laravel projects
-- IDE Helper integration with support for PHP and Laravel Sail
-- Automatic installation and generation of IDE Helper files
-- Artisan command integration with Telescope fuzzy finding
-- Laravel routes and models browsing with Telescope
-- Support for running in Docker/Sail environments
-- Advanced debugging features
-- Comprehensive testing suite (40 tests)
+- 🔍 **Auto-Detection** - Automatic detection of Laravel projects
+- 📖 **IDE Helper** - Integration with support for PHP and Laravel Sail
+- 🔄 **Auto-Install** - Automatic installation and generation of IDE Helper files
+- ⚙️ **Artisan Integration** - Artisan command integration with Telescope fuzzy finding
+- 🧭 **Route & Model Browser** - Laravel routes and models browsing with Telescope
+- 🐳 **Docker Support** - Support for running in Docker/Sail environments
+- 🐛 **Debugging** - Advanced debugging features with integration
+- 🧪 **Testing** - Comprehensive testing suite (40 tests)
 
 ## Requirements
 
