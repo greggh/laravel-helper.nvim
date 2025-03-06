@@ -1,57 +1,30 @@
-# Laravel Helper Plugin
+# Project: Laravel Helper Plugin
 
-## Useful Commands
+## Overview
+Laravel Helper is a Neovim plugin for Laravel development that provides seamless integration with IDE Helper and enhances the Laravel development experience in Neovim. The plugin offers features for model property completion, PhpDoc generation, relation detection and navigation, and various Laravel-specific utilities.
 
-### Git Commands
-- `git -C /home/gregg/Projects/neovim/plugins/laravel-helper status` - Check current status
-- `git -C /home/gregg/Projects/neovim/plugins/laravel-helper add .` - Stage all changes
-- `git -C /home/gregg/Projects/neovim/plugins/laravel-helper commit -m "message"` - Commit changes
-- `git -C /home/gregg/Projects/neovim/plugins/laravel-helper push` - Push changes
+## Essential Commands
+- Run Tests: `env -C /home/gregg/Projects/neovim/plugins/laravel-helper lua tests/run_tests.lua`
+- Check Formatting: `env -C /home/gregg/Projects/neovim/plugins/laravel-helper stylua lua/ -c`
+- Format Code: `env -C /home/gregg/Projects/neovim/plugins/laravel-helper stylua lua/`
+- Run Linter: `env -C /home/gregg/Projects/neovim/plugins/laravel-helper luacheck lua/`
+- Build Documentation: `env -C /home/gregg/Projects/neovim/plugins/laravel-helper mkdocs build`
 
-### Development Commands
-- `stylua lua/ -c` - Check Lua formatting
-- `stylua lua/` - Format Lua code
-- `luacheck lua/` - Run Lua linter
-- `nvim --headless -c "lua require('laravel-helper.test').run()"` - Run tests
+## Project Structure
+- `/lua/laravel-helper`: Main plugin code
+- `/lua/laravel-helper/ide`: IDE Helper integration
+- `/lua/laravel-helper/models`: Model property completion
+- `/lua/laravel-helper/commands`: Laravel command integration
+- `/after/plugin`: Plugin setup and initialization
+- `/tests`: Test files for plugin functionality
+- `/doc`: Vim help documentation
 
-## Codebase Information
+## Current Focus
+- Integrating nvim-toolkit for shared utilities
+- Adding hooks-util as git submodule for development workflow
+- Enhancing IDE Helper integration with better PhpDoc generation
+- Improving performance for large codebases
 
-### Config Options
-```lua
-require("laravel-helper").setup({
-  -- Default Laravel environment
-  env_file = ".env",
-  
-  -- PHP executable path
-  php_cmd = "php",
-  
-  -- Artisan command path
-  artisan_cmd = "artisan",
-  
-  -- IDE Helper configuration
-  ide_helper = {
-    auto_generate = true,       -- Generate IDE helpers on file save
-    generate_on_save = true,    -- Generate on file save
-    show_notifications = true,  -- Show notifications after generation
-  },
-  
-  -- Telescope integration
-  telescope = {
-    enable = true,              -- Enable Telescope integration
-    keymap = "<leader>la",      -- Keymap to open Laravel actions
-  }
-})
-```
-
-### Project Structure
-- `lua/laravel-helper/init.lua` - Main plugin file
-- `lua/laravel-helper/ide-helper.lua` - IDE Helper integration
-- `lua/laravel-helper/artisan.lua` - Artisan command integration
-- `lua/laravel-helper/telescope.lua` - Telescope integration
-- `lua/laravel-helper/config.lua` - Configuration module
-- `lua/laravel-helper/utils.lua` - Utility functions
-- `lua/laravel-helper/test.lua` - Test framework
-
-### Version Management
-- Current version: v0.4.2
-- Version file: `lua/laravel-helper/version.lua`
+## Documentation Links
+- Tasks: `/home/gregg/Projects/docs-projects/neovim-ecosystem-docs/tasks/laravel-helper-tasks.md`
+- Project Status: `/home/gregg/Projects/docs-projects/neovim-ecosystem-docs/project-status.md`
